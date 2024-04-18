@@ -1,4 +1,5 @@
 #include <Novice.h>
+
 static const int Kcolumnwidth = 60;
 
 const char kWindowTitle[] = "LE2B_05_オノデラ_ユヅキ_タイトル";
@@ -56,6 +57,7 @@ float Dot(const Vector3& v1, const Vector3& v2) {
 float Length(const Vector3& v) {
 	float result;
 
+	
 	result = ((v.x * v.x) + (v.y * v.y) + (v.z * v.z));
 
 
