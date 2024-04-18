@@ -1,4 +1,5 @@
 #include <Novice.h>
+#include <math.h>
 
 static const int Kcolumnwidth = 60;
 
@@ -57,21 +58,25 @@ float Dot(const Vector3& v1, const Vector3& v2) {
 float Length(const Vector3& v) {
 	float result;
 
-	
-	result = ((v.x * v.x) + (v.y * v.y) + (v.z * v.z));
-
+	result = sqrtf(powf(v.x, 2) + powf(v.y, 2) + powf(v.z, 2));
 
 	return result;
 };
 
 //正規化
-//Vector3  Normalize(const Vector3& v) {
-//	float result;
+Vector3  Normalize(const Vector3& v) {	
+	Vector3 result{};
 
-//	result = ((v.x * v.x) + (v.y * v.y) + (v.z * v.z));
+	float length = Length(v);
 
-//	return result;
-//};
+	if (length != 0.0){
+		result.x = v.x / length;
+		result.y = v.y / length;
+		result.z = v.z / length;
+	}
+
+	return result;
+};
 
 
 
@@ -109,7 +114,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		Vector3 resultMultiply = Multiply(k, v1);
 		float resultDot = Dot(v1, v2);
 		float resultLength = Length(v1);
-		//	Vector3 resultNormalize = Normalize(v2);
+		Vector3 resultNormalize = Normalize(v2);
 
 			///
 			/// ↑更新処理ここまで
@@ -124,7 +129,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		VectorScreenPrintf(0, kRowHeight * 2, resultMultiply, " : Multiply");
 		Novice::ScreenPrintf(0, kRowHeight * 3, "%.02f : Dot", resultDot);
 		Novice::ScreenPrintf(0, kRowHeight * 4, "%.02f : Length", resultLength);
-		//VectorScreenPrintf(0, kRowHeight * 5, resultNormalize, " : Normalize");
+		VectorScreenPrintf(0, kRowHeight * 5, resultNormalize, " : Normalize");
 
 		///
 		/// ↑描画処理ここまで
