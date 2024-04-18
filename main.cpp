@@ -61,8 +61,7 @@ Matrix4x4 Multiply(const Matrix4x4 m1, const Matrix4x4 m2) {
 				result.m[i][j] += m1.m[i][k] * m2.m[k][j];
 			}
 		}
-	}
-		m1.m[3][3] * m2.m[3][3];
+	}	
 
 	return result;
 };
