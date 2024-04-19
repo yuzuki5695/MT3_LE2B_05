@@ -28,6 +28,49 @@ void MatrixScreenPrintf(int x, int y, const Matrix4x4& matrix) {
 
 }
 
+// 1. X軸回転行列
+Matrix4x4 MakeRotateXMatrix(float radian) {
+	Matrix4x4 result{};
+	float Ctheta = std::cos(radian);
+	float Stheta = std::sin(radian);
+
+	result.m[0][0] = 1.0f; result.m[0][1] = 0.0f;    result.m[0][2] = 0.0f;   result.m[0][3] = 0.0f;
+	result.m[1][0] = 0.0f; result.m[1][1] = Ctheta;  result.m[1][2] = Stheta; result.m[1][3] = 0.0f;
+	result.m[2][0] = 0.0f; result.m[2][1] = -Stheta; result.m[2][2] = Ctheta; result.m[2][3] = 0.0f;
+	result.m[3][0] = 0.0f; result.m[3][1] = 0.0f;    result.m[3][2] = 0.0f;   result.m[3][3] = 1.0f;
+
+
+	return result;
+}
+
+//2. Y軸回転行列
+Matrix4x4 MakeRotateYMatrix(float radian) {
+	Matrix4x4 result{};
+	float Ctheta = std::cos(radian);
+	float Stheta = std::sin(radian);
+
+	result.m[0][0] = Ctheta; result.m[0][1] = 0.0f; result.m[0][2] = -Stheta; result.m[0][3] = 0.0f;
+	result.m[1][0] = 0.0f;   result.m[1][1] = 1.0f; result.m[1][2] = 0.0f;    result.m[1][3] = 0.0f;
+	result.m[2][0] = Stheta; result.m[2][1] = 0.0f; result.m[2][2] = Ctheta;  result.m[2][3] = 0.0f;
+	result.m[3][0] = 0.0f;   result.m[3][1] = 0.0f; result.m[3][2] = 0.0f;    result.m[3][3] = 1.0f;
+
+	return result;
+}
+
+//3. Z軸回8;転行列
+Matrix4x4 MakeRotateZMatrix(float radian) {
+	Matrix4x4 result{};
+	float Ctheta = std::cos(radian);
+	float Stheta = std::sin(radian);
+
+	result.m[0][0] = Ctheta;  result.m[0][1] = Stheta; result.m[0][2] = 0.0f; result.m[0][3] = 0.0f;
+	result.m[1][0] = -Stheta; result.m[1][1] = Ctheta; result.m[1][2] = 0.0f; result.m[1][3] = 0.0f;
+	result.m[2][0] = 0.0f;    result.m[2][1] = 0.0f;   result.m[2][2] = 1.0f; result.m[2][3] = 0.0f;
+	result.m[3][0] = 0.0f;    result.m[3][1] = 0.0f;   result.m[3][2] = 0.0f; result.m[3][3] = 1.0f;
+
+	return result;
+
+}
 
 //4.合成
 Matrix4x4 Multiply(const Matrix4x4 m1, const Matrix4x4 m2) {
@@ -47,76 +90,17 @@ Matrix4x4 Multiply(const Matrix4x4 m1, const Matrix4x4 m2) {
 	return result;
 };
 
-
-
-
-//平行移動行列
-Matrix4x4 MakeTranslateMatrix(const Vector3& teanslate) {
-	Matrix4x4 result;
-	result.m[0][0] = 1.0f;
-	result.m[0][1] = 0.0f;
-	result.m[0][2] = 0.0f;
-	result.m[0][3] = 0.0f;
-
-	result.m[1][0] = 0.0f;
-	result.m[1][1] = 1.0f;
-	result.m[1][2] = 0.0f;
-	result.m[1][3] = 0.0f;
-
-	result.m[2][0] = 0.0f;
-	result.m[2][1] = 0.0f;
-	result.m[2][2] = 1.0f;
-	result.m[2][3] = 0.0f;
-
-	result.m[3][0] = teanslate.x;
-	result.m[3][1] = teanslate.y;
-	result.m[3][2] = teanslate.z;
-	result.m[3][3] = 1.0f;
-
-
-	return result;
-};
-
-
-
-
-Matrix4x4 MakeScaleMatrix(const Vector3& scale) {
-	Matrix4x4 result;
-
-	result.m[0][0] = scale.x; result.m[0][1] = 0.0f; result.m[0][2] = 0.0f; result.m[0][3] = 0.0f;
-	result.m[1][0] = 0.0f; result.m[1][1] = scale.y; result.m[1][2] = 0.0f; result.m[1][3] = 0.0f;
-	result.m[2][0] = 0.0f; result.m[2][1] = 0.0f; result.m[2][2] = scale.z; result.m[2][3] = 0.0f;
-	result.m[3][0] = 0.0f; result.m[3][1] = 0.0f; result.m[3][2] = 0.0f; result.m[3][3] = 1.0f;
-
-	return result;
-}
-
-
-
-//3次元ベクトルを同次座標として変換する 
-Vector3 Transform(const Vector3& vector, const Matrix4x4& matrix) {
-
-	Vector3 result;
-	result.x = vector.x * matrix.m[0][0] + vector.y * matrix.m[1][0] + vector.z * matrix.m[2][0] + 1.0f * matrix.m[3][0];//PosX
-	result.y = vector.x * matrix.m[0][1] + vector.y * matrix.m[1][1] + vector.z * matrix.m[2][1] + 1.0f * matrix.m[3][1];//PosY
-	result.z = vector.x * matrix.m[0][2] + vector.y * matrix.m[1][2] + vector.z * matrix.m[2][2] + 1.0f * matrix.m[3][2];//PosZ
-
-	float w = vector.x * matrix.m[0][3] + vector.y * matrix.m[1][3] + vector.z * matrix.m[2][3] + 1.0f * matrix.m[3][3];;
-	assert(w != 0.0f);
-	result.x /= w;
-	result.y /= w;
-	result.z /= w;
-	return result;
-};
-
-
+//5.3次元アフィン変換
 Matrix4x4 MakeAftineMatrix(const Vector3& scale, const Vector3& rotate, const Vector3& translate) {
 	Matrix4x4 result;
-	Matrix4x4 result2 = MakeTranslateMatrix(rotate);
+	Matrix4x4 rotateXMatrix = MakeRotateXMatrix(rotate.x);
+	Matrix4x4 rotateYMatrix = MakeRotateYMatrix(rotate.y);
+	Matrix4x4 rotateZMatrix = MakeRotateZMatrix(rotate.z);
+	Matrix4x4 rotateRMatrix = Multiply(rotateXMatrix, Multiply(rotateYMatrix, rotateZMatrix));
 
-	result.m[0][0] = scale.x * result2.m[0][0]; result.m[0][1] = scale.x * result2.m[0][1]; result.m[0][2] = scale.x * result2.m[0][2]; 	result.m[0][3] = 0.0f;
-	result.m[1][0] = scale.y * result2.m[1][0]; result.m[1][1] = scale.y * result2.m[1][1]; result.m[1][2] = scale.y * result2.m[1][2]; result.m[1][3] = 0.0f;
-	result.m[2][0] = scale.z * result2.m[2][0]; result.m[2][1] = scale.z * result2.m[2][1]; result.m[2][2] = scale.z * result2.m[2][2]; result.m[2][3] = 0.0f;
+	result.m[0][0] = scale.x * rotateRMatrix.m[0][0]; result.m[0][1] = scale.x * rotateRMatrix.m[0][1]; result.m[0][2] = scale.x * rotateRMatrix.m[0][2]; 	result.m[0][3] = 0.0f;
+	result.m[1][0] = scale.y * rotateRMatrix.m[1][0]; result.m[1][1] = scale.y * rotateRMatrix.m[1][1]; result.m[1][2] = scale.y * rotateRMatrix.m[1][2]; result.m[1][3] = 0.0f;
+	result.m[2][0] = scale.z * rotateRMatrix.m[2][0]; result.m[2][1] = scale.z * rotateRMatrix.m[2][1]; result.m[2][2] = scale.z * rotateRMatrix.m[2][2]; result.m[2][3] = 0.0f;
 	result.m[3][0] = translate.x; result.m[3][1] = translate.y; result.m[3][2] = translate.z; result.m[3][3] = 1.0f;
 
 	return result;
