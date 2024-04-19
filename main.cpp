@@ -1,9 +1,7 @@
 #include <Novice.h>
 #include <math.h>
 #include<cmath>
-
-//cosf(radian);
-//std::cos(radian);
+;
 
 static const int Kcolumnwidth = 60;
 
@@ -19,9 +17,14 @@ struct Matrix4x4 {
 
 //1. X軸回転行列
 Matrix4x4 MakeRotateXMatrix(float radian) {
-	Matrix4x4 result;
+	Matrix4x4 result{};
+	float Ctheta = std::cos(radian);
+	float Stheta = std::sin(radian);
 
-
+	result.m[0][0] = 1.0f; result.m[0][1] = 0.0f; result.m[0][2] = 0.0f; result.m[0][3] = 0.0f;
+	result.m[1][0] = 0.0f; result.m[1][1] = Ctheta; result.m[1][2] = Stheta; result.m[1][3] = 0.0f;
+	result.m[2][0] = 0.0f; result.m[2][1] = -Stheta; result.m[2][2] = Ctheta; result.m[2][3] = 0.0f;
+	result.m[3][0] = 0.0f; result.m[3][1] = 0.0f; result.m[3][2] = 0.0f; result.m[3][3] = 1.0f;
 
 
 	return result;
@@ -29,15 +32,30 @@ Matrix4x4 MakeRotateXMatrix(float radian) {
 
 //2. Y軸回転行列
 Matrix4x4 MakeRotateYMatrix(float radian) {
+	Matrix4x4 result{};
+	float Ctheta = std::cos(radian);
+	float Stheta = std::sin(radian);
 
+	result.m[0][0] = Ctheta; result.m[0][1] = 0.0f; result.m[0][2] = -Stheta; result.m[0][3] = 0.0f;
+	result.m[1][0] = 0.0f; result.m[1][1] = 1.0f; result.m[1][2] = Stheta; result.m[1][3] = 0.0f;
+	result.m[2][0] = Stheta; result.m[2][1] = 0.0f; result.m[2][2] = Ctheta; result.m[2][3] = 0.0f;
+	result.m[3][0] = 0.0f; result.m[3][1] = 0.0f; result.m[3][2] = 0.0f; result.m[3][3] = 1.0f;
 
-
+	return result;
 }
 
 //3. Z軸回転行列
 Matrix4x4 MakeRotateZMatrix(float radian) {
+	Matrix4x4 result{};
+	float Ctheta = std::cos(radian);
+	float Stheta = std::sin(radian);
 
+	result.m[0][0] = Ctheta; result.m[0][1] = Stheta; result.m[0][2] = 0.0f; result.m[0][3] = 0.0f;
+	result.m[1][0] = -Stheta; result.m[1][1] = Ctheta; result.m[1][2] = 0.0f; result.m[1][3] = 0.0f;
+	result.m[2][0] = 0.0f; result.m[2][1] = 0.0f; result.m[2][2] = 1.0f; result.m[2][3] = 0.0f;
+	result.m[3][0] = 0.0f; result.m[3][1] = 0.0f; result.m[3][2] = 0.0f; result.m[3][3] = 1.0f;
 
+	return result;
 
 }
 
@@ -63,7 +81,11 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		// フレームの開始
 		Novice::BeginFrame();
 
+		Vector3 rotate{0.4f,1.43f,-0.8f};
 
+		Matrix4x4 rotateXMatrix = MakeRotateXMatrix(rotate.x);
+		Matrix4x4 rotateYMatrix = MakeRotateXMatrix(rotate.y);
+		Matrix4x4 rotateZMatrix = MakeRotateXMatrix(rotate.z);
 
 		//Matrix4x4 rotateMatrix = Multiply(rotateX,Multiply(rotateY,rotateZ));
 
