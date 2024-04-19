@@ -32,6 +32,11 @@ void MatrixScreenPrintf(int x, int y, const Matrix4x4& matrix) {
 Matrix4x4 MakePerspectiveFovMatrix(float fovY, float aspectRatio, float nearClip, float farclip) {
 	Matrix4x4 result{};
 
+	result.m[0][0] = 0.0f; result.m[0][1] = 0.0f; result.m[0][2] = 0.0f; result.m[0][3] = 0.0f;
+	result.m[1][0] = 0.0f; result.m[1][1] = 0.0f; result.m[1][2] = 0.0f; result.m[1][3] = 0.0f;
+	result.m[2][0] = 0.0f; result.m[2][1] = 0.0f; result.m[2][2] = 0.0f; result.m[2][3] = 1.0f;
+	result.m[3][0] = 0.0f; result.m[3][1] = 0.0f; result.m[3][2] = 0.0f; result.m[3][3] = 0.0f;
+
 
 
 	return result;
@@ -44,7 +49,7 @@ Matrix4x4 MakeOrthographicMatrix(float left, float top, float right, float botto
 	result.m[0][0] = 2.0f / (right - left); result.m[0][1] = 0; result.m[0][2] = 0; result.m[0][3] = 0;
 	result.m[1][0] = 0; result.m[1][1] = 2.0f / (top - bottom); result.m[1][2] = 0; result.m[1][3] = 0;
 	result.m[2][0] = 0; result.m[2][1] = 0.0f; result.m[2][2] = 1.0f / (facDlip - nearClip); result.m[2][3] = 0;
-	result.m[3][0] = (left + right) / (left - right); result.m[3][1] = (top + bottom) / (bottom - top); result.m[3][2] = nearClip / (nearClip - facDlip); result.m[3][3] = 0;
+	result.m[3][0] = (left + right) / (left - right); result.m[3][1] = (top + bottom) / (bottom - top); result.m[3][2] = nearClip / (nearClip - facDlip); result.m[3][3] = 1.0f;
 
 	return result;
 };
@@ -52,8 +57,13 @@ Matrix4x4 MakeOrthographicMatrix(float left, float top, float right, float botto
 
 
 //3.ビューボート変換行列
-Matrix4x4 MakeViewportMatrix(float left, float top, float height, float minDepth, float maxDepth) {
+Matrix4x4 MakeViewportMatrix(float left, float top, float  width,float height, float minDepth, float maxDepth) {
 	Matrix4x4 result{};
+
+	result.m[0][0] = (width / 2.0f); result.m[0][1] = 0.0f; result.m[0][2] = 0.0f; result.m[0][3] = 0.0f;
+	result.m[1][0] = 0.0f; result.m[1][1] = -(height / 2.0f); result.m[1][2] = 0.0f; result.m[1][3] = 0.0f;
+	result.m[2][0] = 0.0f; result.m[2][1] = 0.0f; result.m[2][2] = (maxDepth - minDepth); result.m[2][3] = 0.0f;
+	result.m[3][0] = left + (width / 2); result.m[3][1] = top + (height / 2.0f); result.m[3][2] = minDepth; result.m[3][3] = 1.0f;
 
 
 
@@ -82,7 +92,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		Novice::BeginFrame();
 
 		Matrix4x4 orthographicMatrix = MakeOrthographicMatrix(-160.0f, 160.0f, 200.0f, 300.0f, 0.0f, 1000.0f);
-
+		//Matrix4x4 perspectiveFovMatrix = MakePerspectiveFovMatrix(0.63f,1.33f,0.1f,1000.0f);
+		Matrix4x4 viewportMatrix = MakeViewportMatrix(100.0f, 200.0f, 600.0f, 300.0f, 0.0f, 1.0f);
+	
 
 		// キー入力を受け取る
 		memcpy(preKeys, keys, 256);
@@ -104,6 +116,12 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 		Novice::ScreenPrintf(0, 0, "orthographicMatrix");
 		MatrixScreenPrintf(0, 18, orthographicMatrix);
+
+		Novice::ScreenPrintf(0, Kcolumnwidth * 5, "perspectiveFovMatrix");
+		//MatrixScreenPrintf(0, Kcolumnwidth * 5 + 18, perspectiveFovMatrix);
+
+		Novice::ScreenPrintf(0, Kcolumnwidth * 10, "viewportMatrix");
+		MatrixScreenPrintf(0, Kcolumnwidth * 10 + 18, viewportMatrix);
 
 		///
 		/// ↑描画処理ここまで
