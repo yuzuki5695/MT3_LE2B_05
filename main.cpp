@@ -9,8 +9,17 @@ struct Vector3 {
 	float x, y, z;
 };
 
+struct Matrix4x4 {
+	float m[4][4];
+};
+
+Matrix4x4 MakeRotateXMatrix(float radian) {
 
 
+
+
+}
+ 
 
 
 // Windowsアプリでのエントリーポイント(main関数)
