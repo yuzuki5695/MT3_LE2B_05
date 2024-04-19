@@ -2,8 +2,8 @@
 #include <math.h>
 #include<cmath>
 
-cosf(radian);
-std::cos(radian);
+//cosf(radian);
+//std::cos(radian);
 
 static const int Kcolumnwidth = 60;
 
@@ -19,10 +19,12 @@ struct Matrix4x4 {
 
 //1. X軸回転行列
 Matrix4x4 MakeRotateXMatrix(float radian) {
-	Matrix4x4 
+	Matrix4x4 result;
 
 
 
+
+	return result;
 }
 
 //2. Y軸回転行列
@@ -39,6 +41,13 @@ Matrix4x4 MakeRotateZMatrix(float radian) {
 
 }
 
+
+
+
+
+
+
+
 // Windowsアプリでのエントリーポイント(main関数)
 int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
@@ -54,6 +63,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		// フレームの開始
 		Novice::BeginFrame();
 
+
+
+		//Matrix4x4 rotateMatrix = Multiply(rotateX,Multiply(rotateY,rotateZ));
 
 
 		// キー入力を受け取る
