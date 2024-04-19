@@ -1,6 +1,7 @@
 #include <Novice.h>
 #include <math.h>
 #include<cmath>
+#include<assert.h>
 
 static const int KRowHeight = 20;
 static const int Kcolumnwidth = 60;
@@ -90,6 +91,82 @@ Matrix4x4 Multiply(const Matrix4x4 m1, const Matrix4x4 m2) {
 	return result;
 };
 
+
+
+
+//平行移動行列
+Matrix4x4 MakeTranslateMatrix(const Vector3& teanslate) {
+	Matrix4x4 result;
+	result.m[0][0] = 1.0f;
+	result.m[0][1] = 0.0f;
+	result.m[0][2] = 0.0f;
+	result.m[0][3] = 0.0f;
+
+	result.m[1][0] = 0.0f;
+	result.m[1][1] = 1.0f;
+	result.m[1][2] = 0.0f;
+	result.m[1][3] = 0.0f;
+
+	result.m[2][0] = 0.0f;
+	result.m[2][1] = 0.0f;
+	result.m[2][2] = 1.0f;
+	result.m[2][3] = 0.0f;
+
+	result.m[3][0] = teanslate.x;
+	result.m[3][1] = teanslate.y;
+	result.m[3][2] = teanslate.z;
+	result.m[3][3] = 1.0f;
+
+
+	return result;
+};
+
+
+
+
+Matrix4x4 MakeScaleMatrix(const Vector3& scale) {
+	Matrix4x4 result;
+
+	result.m[0][0] = scale.x; result.m[0][1] = 0.0f; result.m[0][2] = 0.0f; result.m[0][3] = 0.0f;
+	result.m[1][0] = 0.0f; result.m[1][1] = scale.y; result.m[1][2] = 0.0f; result.m[1][3] = 0.0f;
+	result.m[2][0] = 0.0f; result.m[2][1] = 0.0f; result.m[2][2] = scale.z; result.m[2][3] = 0.0f;
+	result.m[3][0] = 0.0f; result.m[3][1] = 0.0f; result.m[3][2] = 0.0f; result.m[3][3] = 1.0f;
+
+	return result;
+}
+
+
+
+//3次元ベクトルを同次座標として変換する 
+Vector3 Transform(const Vector3& vector, const Matrix4x4& matrix) {
+
+	Vector3 result;
+	result.x = vector.x * matrix.m[0][0] + vector.y * matrix.m[1][0] + vector.z * matrix.m[2][0] + 1.0f * matrix.m[3][0];//PosX
+	result.y = vector.x * matrix.m[0][1] + vector.y * matrix.m[1][1] + vector.z * matrix.m[2][1] + 1.0f * matrix.m[3][1];//PosY
+	result.z = vector.x * matrix.m[0][2] + vector.y * matrix.m[1][2] + vector.z * matrix.m[2][2] + 1.0f * matrix.m[3][2];//PosZ
+
+	float w = vector.x * matrix.m[0][3] + vector.y * matrix.m[1][3] + vector.z * matrix.m[2][3] + 1.0f * matrix.m[3][3];;
+	assert(w != 0.0f);
+	result.x /= w;
+	result.y /= w;
+	result.z /= w;
+	return result;
+};
+
+
+Matrix4x4 MakeAftineMatrix(const Vector3& scale, const Vector3& rotate, const Vector3& translate) {
+	Matrix4x4 result;
+	
+	result.m[0][0] = scale.x * rotate.x; result.m[0][1] = scale.x * rotate.x; result.m[0][2] = scale.x * rotate.x; 	result.m[0][3] = 0.0f;
+	result.m[1][0] = scale.y * rotate.y; result.m[1][1] = scale.y * rotate.y; result.m[1][2] = scale.y * rotate.y; result.m[1][3] = 0.0f;
+	result.m[2][0] = scale.z * rotate.z; result.m[2][1] = scale.z * rotate.z; result.m[2][2] = scale.z * rotate.z; result.m[2][3] = 0.0f;
+	result.m[3][0] = translate.x; result.m[3][1] = translate.y; result.m[3][2] = translate.z; result.m[3][3] = 1.0f;
+
+	return result;
+};
+
+
+
 // Windowsアプリでのエントリーポイント(main関数)
 int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
@@ -105,13 +182,13 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		// フレームの開始
 		Novice::BeginFrame();
 
-		Vector3 rotate{0.4f,1.43f,-0.8f};
+		Vector3 scale{ 1.2f,0.79f,-2.1f };
+		Vector3 rotate{ 0.4f,1.43f,-0.8f };
+		Vector3 translate{2.7f,-4.15f,1.57f};
 
-		Matrix4x4 rotateXMatrix = MakeRotateXMatrix(rotate.x);
-		Matrix4x4 rotateYMatrix = MakeRotateYMatrix(rotate.y);
-		Matrix4x4 rotateZMatrix = MakeRotateZMatrix(rotate.z);
+		Matrix4x4 worldMatrix = MakeAftineMatrix(scale,rotate,translate);
 
-		Matrix4x4 rotateXYZMatrix = Multiply(rotateXMatrix,Multiply(rotateYMatrix, rotateZMatrix));
+
 
 		// キー入力を受け取る
 		memcpy(preKeys, keys, 256);
@@ -131,18 +208,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		/// ↓描画処理ここから
 		///
 		
-		Novice::ScreenPrintf(0, 0, "rotateXMatrix");
-		MatrixScreenPrintf(0, 18, rotateXMatrix);
-
-		Novice::ScreenPrintf(0, KRowHeight * 5, "rotateYMatrix");
-		MatrixScreenPrintf(0,KRowHeight * 5 + 18, rotateYMatrix);
-
-		Novice::ScreenPrintf(0, KRowHeight * 5 * 2, "rotateZMatrix");
-		MatrixScreenPrintf(0, KRowHeight * 5 * 2+ 18, rotateZMatrix);
-
-
-		Novice::ScreenPrintf(0, KRowHeight * 5 * 3, "rotateXYZMatrix");
-		MatrixScreenPrintf(0, KRowHeight * 5 * 3 + 18, rotateXYZMatrix);
+		Novice::ScreenPrintf(0, 0, "rotateXMatrix");		
+		MatrixScreenPrintf(0, 18, worldMatrix);
 
 		///
 		/// ↑描画処理ここまで
