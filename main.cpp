@@ -1,7 +1,9 @@
 #include <Novice.h>
-#include <math.h>
 #include<cmath>
 #include<assert.h>
+#define _USE_MATH_DEFINES
+#include <math.h>
+
 
 static const int KRowHeight = 20;
 static const int Kcolumnwidth = 60;
@@ -31,11 +33,12 @@ void MatrixScreenPrintf(int x, int y, const Matrix4x4& matrix) {
 //1.透視投影行列　
 Matrix4x4 MakePerspectiveFovMatrix(float fovY, float aspectRatio, float nearClip, float farclip) {
 	Matrix4x4 result{};
-
-	result.m[0][0] = 0.0f; result.m[0][1] = 0.0f; result.m[0][2] = 0.0f; result.m[0][3] = 0.0f;
-	result.m[1][0] = 0.0f; result.m[1][1] = 0.0f; result.m[1][2] = 0.0f; result.m[1][3] = 0.0f;
-	result.m[2][0] = 0.0f; result.m[2][1] = 0.0f; result.m[2][2] = 0.0f; result.m[2][3] = 1.0f;
-	result.m[3][0] = 0.0f; result.m[3][1] = 0.0f; result.m[3][2] = 0.0f; result.m[3][3] = 0.0f;
+	float f = 1.0f / tan(fovY * 0.5f * float(M_PI) / 180.0f);
+	float ZRange = nearClip - farclip;
+	result.m[0][0] = f / aspectRatio ;result.m[0][1] = 0.0f; result.m[0][2] = 0.0f; result.m[0][3] = 0.0f;
+	result.m[1][0] = 0.0f; result.m[1][1] = f; result.m[1][2] = 0.0f; result.m[1][3] = 0.0f;
+	result.m[2][0] = 0.0f; result.m[2][1] = 0.0f; result.m[2][2] = (farclip / nearClip) / ZRange; result.m[2][3] = 1.0f;
+	result.m[3][0] = 0.0f; result.m[3][1] = 0.0f; result.m[3][2] = 1.0f * farclip * nearClip / ZRange; result.m[3][3] = 0.0f;
 
 
 	return result;
@@ -91,7 +94,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		Novice::BeginFrame();
 
 		Matrix4x4 orthographicMatrix = MakeOrthographicMatrix(-160.0f, 160.0f, 200.0f, 300.0f, 0.0f, 1000.0f);
-		//Matrix4x4 perspectiveFovMatrix = MakePerspectiveFovMatrix(0.63f,1.33f,0.1f,1000.0f);
+		Matrix4x4 perspectiveFovMatrix = MakePerspectiveFovMatrix(0.63f,1.33f,0.1f,1000.0f);
 		Matrix4x4 viewportMatrix = MakeViewportMatrix(100.0f, 200.0f, 600.0f, 300.0f, 0.0f, 1.0f);
 	
 
@@ -116,11 +119,11 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		Novice::ScreenPrintf(0, 0, "orthographicMatrix");
 		MatrixScreenPrintf(0, 18, orthographicMatrix);
 
-		Novice::ScreenPrintf(0, Kcolumnwidth * 5, "perspectiveFovMatrix");
-		//MatrixScreenPrintf(0, Kcolumnwidth * 5 + 18, perspectiveFovMatrix);
+		Novice::ScreenPrintf(0, KRowHeight * 5, "perspectiveFovMatrix");
+		MatrixScreenPrintf(0, KRowHeight * 5 + 18, perspectiveFovMatrix);
 
-		Novice::ScreenPrintf(0, Kcolumnwidth * 10, "viewportMatrix");
-		MatrixScreenPrintf(0, Kcolumnwidth * 10 + 18, viewportMatrix);
+		Novice::ScreenPrintf(0, KRowHeight * 10, "viewportMatrix");
+		MatrixScreenPrintf(0, KRowHeight * 10 + 18, viewportMatrix);
 
 		///
 		/// ↑描画処理ここまで
