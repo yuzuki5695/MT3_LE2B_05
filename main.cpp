@@ -75,6 +75,93 @@ Matrix4x4 MakeViewportMatrix(float left, float top, float  width,float height, f
 
 
 
+// 1. X軸回転行列
+Matrix4x4 MakeRotateXMatrix(float radian) {
+	Matrix4x4 result{};
+	float Ctheta = std::cos(radian);
+	float Stheta = std::sin(radian);
+
+	result.m[0][0] = 1.0f; result.m[0][1] = 0.0f;    result.m[0][2] = 0.0f;   result.m[0][3] = 0.0f;
+	result.m[1][0] = 0.0f; result.m[1][1] = Ctheta;  result.m[1][2] = Stheta; result.m[1][3] = 0.0f;
+	result.m[2][0] = 0.0f; result.m[2][1] = -Stheta; result.m[2][2] = Ctheta; result.m[2][3] = 0.0f;
+	result.m[3][0] = 0.0f; result.m[3][1] = 0.0f;    result.m[3][2] = 0.0f;   result.m[3][3] = 1.0f;
+
+
+	return result;
+}
+
+//2. Y軸回転行列
+Matrix4x4 MakeRotateYMatrix(float radian) {
+	Matrix4x4 result{};
+	float Ctheta = std::cos(radian);
+	float Stheta = std::sin(radian);
+
+	result.m[0][0] = Ctheta; result.m[0][1] = 0.0f; result.m[0][2] = -Stheta; result.m[0][3] = 0.0f;
+	result.m[1][0] = 0.0f;   result.m[1][1] = 1.0f; result.m[1][2] = 0.0f;    result.m[1][3] = 0.0f;
+	result.m[2][0] = Stheta; result.m[2][1] = 0.0f; result.m[2][2] = Ctheta;  result.m[2][3] = 0.0f;
+	result.m[3][0] = 0.0f;   result.m[3][1] = 0.0f; result.m[3][2] = 0.0f;    result.m[3][3] = 1.0f;
+
+	return result;
+}
+
+//3. Z軸回8;転行列
+Matrix4x4 MakeRotateZMatrix(float radian) {
+	Matrix4x4 result{};
+	float Ctheta = std::cos(radian);
+	float Stheta = std::sin(radian);
+
+	result.m[0][0] = Ctheta;  result.m[0][1] = Stheta; result.m[0][2] = 0.0f; result.m[0][3] = 0.0f;
+	result.m[1][0] = -Stheta; result.m[1][1] = Ctheta; result.m[1][2] = 0.0f; result.m[1][3] = 0.0f;
+	result.m[2][0] = 0.0f;    result.m[2][1] = 0.0f;   result.m[2][2] = 1.0f; result.m[2][3] = 0.0f;
+	result.m[3][0] = 0.0f;    result.m[3][1] = 0.0f;   result.m[3][2] = 0.0f; result.m[3][3] = 1.0f;
+
+	return result;
+
+}
+
+//4.合成
+Matrix4x4 Multiply(const Matrix4x4 m1, const Matrix4x4 m2) {
+
+	Matrix4x4 result{};
+	for (int i = 0; i < 4; i++)
+	{
+		for (int j = 0; j < 4; j++)
+		{
+			for (int k = 0; k < 4; k++)
+			{
+				result.m[i][j] += m1.m[i][k] * m2.m[k][j];
+			}
+		}
+	}
+
+	return result;
+};
+
+//5.3次元アフィン変換
+Matrix4x4 MakeAftineMatrix(const Vector3& scale, const Vector3& rotate, const Vector3& translate) {
+	Matrix4x4 result;
+	Matrix4x4 rotateXMatrix = MakeRotateXMatrix(rotate.x);
+	Matrix4x4 rotateYMatrix = MakeRotateYMatrix(rotate.y);
+	Matrix4x4 rotateZMatrix = MakeRotateZMatrix(rotate.z);
+	Matrix4x4 rotateRMatrix = Multiply(rotateXMatrix, Multiply(rotateYMatrix, rotateZMatrix));
+
+	result.m[0][0] = scale.x * rotateRMatrix.m[0][0]; result.m[0][1] = scale.x * rotateRMatrix.m[0][1]; result.m[0][2] = scale.x * rotateRMatrix.m[0][2]; 	result.m[0][3] = 0.0f;
+	result.m[1][0] = scale.y * rotateRMatrix.m[1][0]; result.m[1][1] = scale.y * rotateRMatrix.m[1][1]; result.m[1][2] = scale.y * rotateRMatrix.m[1][2]; result.m[1][3] = 0.0f;
+	result.m[2][0] = scale.z * rotateRMatrix.m[2][0]; result.m[2][1] = scale.z * rotateRMatrix.m[2][1]; result.m[2][2] = scale.z * rotateRMatrix.m[2][2]; result.m[2][3] = 0.0f;
+	result.m[3][0] = translate.x; result.m[3][1] = translate.y; result.m[3][2] = translate.z; result.m[3][3] = 1.0f;
+
+	return result;
+};
+
+//クロス積
+Vector3 Cross(const Vector3& v1, const Vector3& v2) {
+	Vector3 result;
+	result.x = (v1.y * v2.z) - (v1.z * v2.y);
+	result.y = (v1.z * v2.x) - (v1.x * v2.z);
+	result.z = (v1.x * v2.y) - (v1.y * v2.x);
+
+	return result;
+};
 
 
 
@@ -93,10 +180,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		// フレームの開始
 		Novice::BeginFrame();
 
-		Matrix4x4 orthographicMatrix = MakeOrthographicMatrix(-160.0f, 160.0f, 200.0f, 300.0f, 0.0f, 1000.0f);
-		Matrix4x4 perspectiveFovMatrix = MakePerspectiveFovMatrix(0.63f,1.33f,0.1f,1000.0f);
-		Matrix4x4 viewportMatrix = MakeViewportMatrix(100.0f, 200.0f, 600.0f, 300.0f, 0.0f, 1.0f);
-	
 
 		// キー入力を受け取る
 		memcpy(preKeys, keys, 256);
@@ -105,6 +188,30 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		///
 		/// ↓更新処理ここから
 		///
+
+		Vector3 v1{ 1.2f,-3.9f,2.5f };
+		Vector3 v2{ 2.8f,0.4f,-1.3f };
+		Vector3 cross = Cross(v1, v2);
+		Vector3 rotare{};
+		Vector3 translate{};
+		Vector3 cameraPosition{};
+
+		Matrix4x4 worldMatrix = MakeAftineMatrix({ 1.0f,1.0f,1.0f }, rotare, translate);
+		Matrix4x4 cameraMatrix = MakeAftineMatrix({1.0f, 1.0f, 1.0f},{0.0f,0.0f,0.0f}, cameraPosition);
+		Matrix4x4 viewMatrix = Inverse(cameraMatrix);
+
+		Matrix4x4 projectionMatrix = MakePerspectiveFovMatrix(0.45f, float(1280) / float(720), 0.1f,100.0f);		
+		Matrix4x4 worldViewProjectionMatrix = Multiply(worldMatrix, Multiply(viewMatrix, projectionMatrix));	
+		Matrix4x4 ViewportMatrix = MakeViewportMatrix(0, 0, 1280.0f,720.0f,0.0f,1.0f);
+
+		Vector3 screenVertices[3];
+		Vector3 KLocalVertices[3];
+		for (uint32_t i = 0; i < 3; i++) {
+			Vector3 ndcVertex = Transform(KLocalVertices[i], worldViewProjectionMatrix);
+			screenVertices[i] = Transform(ndcVertex, ViewportMatrix);
+
+		}
+
 
 
 
@@ -116,14 +223,11 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		/// ↓描画処理ここから
 		///
 
-		Novice::ScreenPrintf(0, 0, "orthographicMatrix");
-		MatrixScreenPrintf(0, 18, orthographicMatrix);
+		
 
-		Novice::ScreenPrintf(0, KRowHeight * 5, "perspectiveFovMatrix");
-		MatrixScreenPrintf(0, KRowHeight * 5 + 18, perspectiveFovMatrix);
 
-		Novice::ScreenPrintf(0, KRowHeight * 10, "viewportMatrix");
-		MatrixScreenPrintf(0, KRowHeight * 10 + 18, viewportMatrix);
+		//Novice::DrawTriangle(int(screenVertices[0].x), int(screenVertices[0].y), int(screenVertices[1].x), int(screenVertices[1].y),int(screenVertices[2].x), int(screenVertices[2].y),RED,kFillModeSolid);
+
 
 		///
 		/// ↑描画処理ここまで
