@@ -33,12 +33,12 @@ void MatrixScreenPrintf(int x, int y, const Matrix4x4& matrix) {
 //1.透視投影行列　
 Matrix4x4 MakePerspectiveFovMatrix(float fovY, float aspectRatio, float nearClip, float farclip) {
 	Matrix4x4 result{};
-	float f = 1.0f / tan(fovY * 0.5f * float(M_PI) / 180.0f);
-	float ZRange = nearClip - farclip;
-	result.m[0][0] = f / aspectRatio ;result.m[0][1] = 0.0f; result.m[0][2] = 0.0f; result.m[0][3] = 0.0f;
-	result.m[1][0] = 0.0f; result.m[1][1] = f; result.m[1][2] = 0.0f; result.m[1][3] = 0.0f;
-	result.m[2][0] = 0.0f; result.m[2][1] = 0.0f; result.m[2][2] = (farclip / nearClip) / ZRange; result.m[2][3] = 1.0f;
-	result.m[3][0] = 0.0f; result.m[3][1] = 0.0f; result.m[3][2] = 1.0f * farclip * nearClip / ZRange; result.m[3][3] = 0.0f;
+
+
+	result.m[0][0] = (1.0f / aspectRatio) * tanf(fovY/ 2);result.m[0][1] = 0.0f; result.m[0][2] = 0.0f; result.m[0][3] = 0.0f;
+	result.m[1][0] = 0.0f; result.m[1][1] = (1.0f /tanf(fovY / 2)); result.m[1][2] = 0.0f; result.m[1][3] = 0.0f;
+	result.m[2][0] = 0.0f; result.m[2][1] = 0.0f; result.m[2][2] = farclip /(farclip - nearClip) ; result.m[2][3] = 1.0f;
+	result.m[3][0] = 0.0f; result.m[3][1] = 0.0f; result.m[3][2] = (-nearClip * farclip) / (farclip - nearClip ); result.m[3][3] = 0.0f;
 
 
 	return result;
