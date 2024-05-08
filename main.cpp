@@ -41,7 +41,19 @@ Vector3 Cross(const Vector3& v1, const Vector3& v2) {
 };
 
 
-void DrawGrid(const MMatrix4x4&)
+void DrawSphere(const Sphere& sphere, const Matrix4x4& viewProiectionMatrix, const Matrix4x4& viewproiectionMatrix, uint32_t color) {
+
+
+
+}
+
+
+void DrawGrid(const Matrix4x4& viewProiectionMatrix, const Matrix4x4& viewproiectionMatrix) {
+	const float KG
+
+
+
+}
 
 
 // Windowsアプリでのエントリーポイント(main関数)
@@ -58,6 +70,10 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	while (Novice::ProcessMessage() == 0) {
 		// フレームの開始
 		Novice::BeginFrame();
+
+
+		Vector3  cameraTranslate{ 0.0f,1.9f,-6.49f };
+		Vector3  cameraRotare{ 0.26f,0.0f,0.0f };
 
 
 		// キー入力を受け取る
