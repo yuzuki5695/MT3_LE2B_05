@@ -312,10 +312,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		/// ↓更新処理ここから
 		///
 
-		DrawGrid(viewMatrix, viewMatrix);
-
-		DrawSphere(Sphere, viewMatrix, viewMatrix,0XFFFFFFFF);
-
+		
 
 		///
 		/// ↑更新処理ここまで
@@ -324,6 +321,11 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		///
 		/// ↓描画処理ここから
 		///
+	
+		
+		DrawGrid(viewMatrix, viewMatrix);
+
+		DrawSphere(Sphere, viewMatrix, viewMatrix, 0XFFFFFFFF);
 
 
 		///
