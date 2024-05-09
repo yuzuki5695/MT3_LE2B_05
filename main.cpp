@@ -278,6 +278,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			translate.x += 1.0f; 
 		}
 
+
 		Matrix4x4 worldMatrix = MakeAftineMatrix({ 1.0f,1.0f,1.0f }, rotare, translate);
 		Matrix4x4 cameraMatrix = MakeAftineMatrix({1.0f, 1.0f, 1.0f},{0.0f,0.0f,0.0f}, cameraPosition);
 		Matrix4x4 viewMatrix = Inverse(cameraMatrix);
@@ -296,9 +297,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			screenVertices[i] = Transform(ndcVertex, ViewportMatrix);
 
 		}
-
-
-
 
 		///
 		/// ↑更新処理ここまで
