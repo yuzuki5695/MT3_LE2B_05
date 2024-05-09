@@ -191,6 +191,22 @@ Matrix4x4 Inverse(const Matrix4x4& matrix) {
 
 
 
+//3次元ベクトルを同次座標として変換する 
+Vector3 Transform(const Vector3& vector, const Matrix4x4& matrix) {
+
+	Vector3 result;
+	result.x = vector.x * matrix.m[0][0] + vector.y * matrix.m[1][0] + vector.z * matrix.m[2][0] + 1.0f * matrix.m[3][0];//PosX
+	result.y = vector.x * matrix.m[0][1] + vector.y * matrix.m[1][1] + vector.z * matrix.m[2][1] + 1.0f * matrix.m[3][1];//PosY
+	result.z = vector.x * matrix.m[0][2] + vector.y * matrix.m[1][2] + vector.z * matrix.m[2][2] + 1.0f * matrix.m[3][2];//PosZ
+
+	float w = vector.x * matrix.m[0][3] + vector.y * matrix.m[1][3] + vector.z * matrix.m[2][3] + 1.0f * matrix.m[3][3];;
+	assert(w != 0.0f);
+	result.x /= w;
+	result.y /= w;
+	result.z /= w;
+	return result;
+};
+
 
 
 //クロス積
@@ -223,7 +239,16 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		// フレームの開始
 		Novice::BeginFrame();
 
-
+		Vector3 v1{ 1.2f,-3.9f,2.5f };
+		Vector3 v2{ 2.8f,0.4f,-1.3f };
+		Vector3 cross = Cross(v1, v2);
+		Vector3 rotare{};
+		Vector3 translate{};
+		Vector3 cameraPosition{};
+		
+		//回転
+		float rotationSpeed = 1.0f; 
+	
 		// キー入力を受け取る
 		memcpy(preKeys, keys, 256);
 		Novice::GetHitKeyStateAll(keys);
@@ -232,25 +257,31 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		/// ↓更新処理ここから
 		///
 
+	 
+		rotare.y += rotationSpeed;
 
+	
+		
+		if (keys[DIK_W]) {
+			translate.z += 1.0f;
 
+		}
+		if (keys[DIK_S]) {
+			translate.z -= 1.0f;
+			
+		}
+		if (keys[DIK_A]) {
+			translate.x -= 1.0f;
+		}
 
-
-
-
-
-
-
-		Vector3 v1{ 1.2f,-3.9f,2.5f };
-		Vector3 v2{ 2.8f,0.4f,-1.3f };
-		Vector3 cross = Cross(v1, v2);
-		Vector3 rotare{};
-		Vector3 translate{};
-		Vector3 cameraPosition{};
+		if (keys[DIK_D]) {
+			translate.x += 1.0f; 
+		}
 
 		Matrix4x4 worldMatrix = MakeAftineMatrix({ 1.0f,1.0f,1.0f }, rotare, translate);
 		Matrix4x4 cameraMatrix = MakeAftineMatrix({1.0f, 1.0f, 1.0f},{0.0f,0.0f,0.0f}, cameraPosition);
 		Matrix4x4 viewMatrix = Inverse(cameraMatrix);
+
 
 		Matrix4x4 projectionMatrix = MakePerspectiveFovMatrix(0.45f, float(1280) / float(720), 0.1f,100.0f);		
 		Matrix4x4 worldViewProjectionMatrix = Multiply(worldMatrix, Multiply(viewMatrix, projectionMatrix));	
@@ -258,6 +289,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 		Vector3 screenVertices[3];
 		Vector3 KLocalVertices[3];
+
+
 		for (uint32_t i = 0; i < 3; i++) {
 			Vector3 ndcVertex = Transform(KLocalVertices[i], worldViewProjectionMatrix);
 			screenVertices[i] = Transform(ndcVertex, ViewportMatrix);
@@ -275,10 +308,13 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		/// ↓描画処理ここから
 		///
 
-		
+		Novice::ScreenPrintf(0,0,"%f %f %f Cross", cross.x, cross.y, cross.z);
+	
+		Novice::ScreenPrintf(0, 50, "%f %f ", rotare.y, translate.y);
 
 
-		//Novice::DrawTriangle(int(screenVertices[0].x), int(screenVertices[0].y), int(screenVertices[1].x), int(screenVertices[1].y),int(screenVertices[2].x), int(screenVertices[2].y),RED,kFillModeSolid);
+		Novice::DrawTriangle(int(screenVertices[0].x), int(screenVertices[0].y), int(screenVertices[1].x), int(screenVertices[1].y),
+			int(screenVertices[2].x), int(screenVertices[2].y),RED,kFillModeSolid);
 
 
 		///
