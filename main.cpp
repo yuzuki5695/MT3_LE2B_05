@@ -45,16 +45,50 @@ void DrawSphere(const Sphere& sphere, const Matrix4x4& viewProiectionMatrix, con
 
 
 
+
+
 }
+
+
 
 
 void DrawGrid(const Matrix4x4& viewProiectionMatrix, const Matrix4x4& viewproiectionMatrix) {
-	const float KG
+	const float KGridHalfwidth = 2.0f;
+	const uint32_t KSubdivision = 10;
+	const float KGridEvery = (KGridHalfwidth* 2.0f) / float(KSubdivision);
+	//奥から手前への線を順々に引いていく
+	for (uint32_t xIndex = 0; xIndex <= KSubdivision; ++xIndex) {
+		float xCoord = -KGridHalfwidth + xIndex * KGridEvery;
 
+		Vector3 startPoint(xCoord, 0.0f, -KGridHalfwidth);
+		Vector3 endPoint(xCoord, 0.0f, KGridHalfwidth);
 
+		// 始点と終点をビュー空間および投影空間に変換する
+		Vector3 transformedStartPoint = Transform(startPoint, viewProjectionMatrix);
+		Vector3 transformedEndPoint = Transform(endPoint, viewProjectionMatrix);
 
-}
+		// 変換された座標をスクリーン座標系に変換する
+		Vector3 screenStartPoint = Transform(transformedStartPoint, MakeViewportMatrix(0, 0, 1280.0f, 720.0f, 0.0f, 1.0f));
+		Vector3 screenEndPoint = Transform(transformedEndPoint, MakeViewportMatrix(0, 0, 1280.0f, 720.0f, 0.0f, 1.0f));
 
+		Novice::DrawLine(screenStartPoint.x, screenStartPoint.y, screenEndPoint.x, screenEndPoint.y, color);
+	}
+
+	for (uint32_t zIndex = 0; zIndex <= KSubdivision; ++zIndex) {
+		float zCoord = -KGridHalfwidth + zIndex * KGridEvery;
+
+		Vector3 startPoint(-KGridHalfwidth, 0.0f, zCoord);
+		Vector3 endPoint(KGridHalfwidth, 0.0f, zCoord);
+
+		
+		Vector3 transformedStartPoint = Transform(startPoint, viewProjectionMatrix);
+		Vector3 transformedEndPoint = Transform(endPoint, viewProjectionMatrix);
+
+		Vector3 screenStartPoint = Transform(transformedStartPoint, MakeViewportMatrix(0, 0, 1280.0f, 720.0f, 0.0f, 1.0f));
+		Vector3 screenEndPoint = Transform(transformedEndPoint, MakeViewportMatrix(0, 0, 1280.0f, 720.0f, 0.0f, 1.0f));
+
+		Novice::DrawLine(screenStartPoint.x, screenStartPoint.y, screenEndPoint.x, screenEndPoint.y, color);
+	}
 
 // Windowsアプリでのエントリーポイント(main関数)
 int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
