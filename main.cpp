@@ -165,6 +165,9 @@ Vector3 Cross(const Vector3& v1, const Vector3& v2) {
 
 
 
+
+
+
 // Windowsアプリでのエントリーポイント(main関数)
 int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
@@ -188,6 +191,15 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		///
 		/// ↓更新処理ここから
 		///
+
+
+
+
+
+
+
+
+
 
 		Vector3 v1{ 1.2f,-3.9f,2.5f };
 		Vector3 v2{ 2.8f,0.4f,-1.3f };
