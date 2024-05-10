@@ -124,12 +124,19 @@ void DrawSphere(const Sphere& sphere, const Matrix4x4& viewProiectionMatrix, con
 }
 
 
+Vector3 Subtract(const Vector3& point, const Vector3& segmet) {
+	Vector3 result;
 
+
+	return result;
+};
 
 
 Vector3 Project(const Vector3& v1, const Vector3& v2) {
 	Vector3 result;
 	
+
+
 
 	return result;
 };
@@ -140,6 +147,9 @@ Vector3 ClosestPoint(const Vector3& point, const Segmet& segmet) {
 
 	return result;
 };
+
+
+
 
 
 // Windowsアプリでのエントリーポイント(main関数)
@@ -159,19 +169,20 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 		Segmet segmet{ {-2.0f,-1.0f,0.0f},{3.0f,2.0f,2.0f} };
 		Vector3 point{-1.5f,0.6f,0.6f};
-		//Vector3 project 
+		Vector3 project = Project(Subtract(point, segmet.origin),segmet.diff);
 		Vector3 closestPoint = ClosestPoint(point, segmet);
 
 		Sphere pointSphere{ point,0.01f };
 		Sphere closestPointSphere{ closestPoint,0.01f };
-		
-		//DrawSphere(pointSphere,);
 
-		Vector3 start = Transform(Transform(segmet.origin,))
+		
+
+		//DrawSphere(pointSphere,);
+		//Vector3 start = Transform(Transform(segmet.origin,))
 
 
 		ImGui::Begin("Window");
-		ImGui::DragFloat3("Project",&project.x,"%.3f",ImGuiInputTextFlags_ReadOnly);
+		ImGui::InputFloat3("Project",&project.x,"%.3f",ImGuiInputTextFlags_ReadOnly);
 		ImGui::End();
 
 		// キー入力を受け取る
