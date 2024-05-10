@@ -19,6 +19,11 @@ struct Matrix4x4 {
 };
 
 
+struct Sphere {
+	Vector3 center;
+	float radius;
+};
+
 struct Line {
 	Vector3 origin;
 	Vector3 diff;
