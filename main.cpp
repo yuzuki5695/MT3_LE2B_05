@@ -41,9 +41,14 @@ struct Segmet {
 
 
 
-
-
-
+//加算
+Vector3 Add(const Vector3& v1, const Vector3& v2) {
+	Vector3 result;
+	result.x = (v1.x + v2.x);
+	result.y = (v1.y + v2.y);
+	result.z = (v1.z + v2.z);
+	return result;
+};
 
 //クロス積
 Vector3 Cross(const Vector3& v1, const Vector3& v2) {
@@ -122,43 +127,20 @@ void DrawSphere(const Sphere& sphere, const Matrix4x4& viewProiectionMatrix, con
 
 
 
-void DrawGrid(const Matrix4x4& viewProiectionMatrix, const Matrix4x4& viewproiectionMatrix) {
-	const float KGridHalfwidth = 2.0f;
-	const uint32_t KSubdivision = 10;
-	const float KGridEvery = (KGridHalfwidth * 2.0f) / float(KSubdivision);
+Vector3 Project(const Vector3& v1, const Vector3& v2) {
+	Vector3 result;
+	
 
-	//奥から手前への線を順々に引いていく
-	for (uint32_t xIndex = 0; xIndex <= KSubdivision; ++xIndex) {
-		float xCoord = -KGridHalfwidth + xIndex * KGridEvery;
+	return result;
+};
 
-		Vector3 startPoint(xCoord, 0.0f, -KGridHalfwidth);
-		Vector3 endPoint(xCoord, 0.0f, KGridHalfwidth);
-
-		Vector3 transformedStartPoint = Transform(startPoint, viewProiectionMatrix);
-		Vector3 transformedEndPoint = Transform(endPoint, viewProiectionMatrix);
-
-		Vector3 screenStartPoint = Transform(transformedStartPoint, viewproiectionMatrix);
-		Vector3 screenEndPoint = Transform(transformedEndPoint, viewproiectionMatrix);
-
-		Novice::DrawLine(int(screenStartPoint.x), int(screenStartPoint.y), int(screenEndPoint.x), int(screenEndPoint.y), 0XAAAAAAFF);
-	}
-
-	for (uint32_t zIndex = 0; zIndex <= KSubdivision; ++zIndex) {
-		float zCoord = -KGridHalfwidth + zIndex * KGridEvery;
-
-		Vector3 startPoint(-KGridHalfwidth, 0.0f, zCoord);
-		Vector3 endPoint(KGridHalfwidth, 0.0f, zCoord);
+Vector3 ClosestPoint(const Vector3& point, const Segmet& segmet) {
+	Vector3 result;
 
 
-		Vector3 transformedStartPoint = Transform(startPoint, viewProiectionMatrix);
-		Vector3 transformedEndPoint = Transform(endPoint, viewProiectionMatrix);
+	return result;
+};
 
-		Vector3 screenStartPoint = Transform(transformedStartPoint, viewproiectionMatrix);
-		Vector3 screenEndPoint = Transform(transformedEndPoint, viewproiectionMatrix);
-
-		Novice::DrawLine(int(screenStartPoint.x), int(screenStartPoint.y), int(screenEndPoint.x), int(screenEndPoint.y), 0XAAAAAAFF);
-	}
-}
 
 // Windowsアプリでのエントリーポイント(main関数)
 int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
@@ -175,20 +157,21 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		// フレームの開始
 		Novice::BeginFrame();
 
-		Vector3  cameraTranslate{ 0.0f,1.9f,-6.49f };
-		Vector3  cameraRotare{ 0.26f,0.0f,0.0f };
-		Vector3 cameraPosition{};
+		Segmet segmet{ {-2.0f,-1.0f,0.0f},{3.0f,2.0f,2.0f} };
+		Vector3 point{-1.5f,0.6f,0.6f};
+		//Vector3 project 
+		Vector3 closestPoint = ClosestPoint(point, segmet);
 
-		Matrix4x4 worldMatrix = MakeAftineMatrix({ 1.0f,1.0f,1.0f }, cameraRotare, cameraTranslate);
-		Matrix4x4 cameraMatrix = MakeAftineMatrix({ 1.0f, 1.0f, 1.0f }, { 0.0f,0.0f,0.0f }, cameraPosition);
-		Matrix4x4 viewMatrix = Inverse(cameraMatrix);
-		Sphere Sphere;
+		Sphere pointSphere{ point,0.01f };
+		Sphere closestPointSphere{ closestPoint,0.01f };
+		
+		//DrawSphere(pointSphere,);
+
+		Vector3 start = Transform(Transform(segmet.origin,))
+
 
 		ImGui::Begin("Window");
-		ImGui::DragFloat3("CameraTranslate", &cameraTranslate.x, 0.01f);
-		ImGui::DragFloat3("CameraRotare", &cameraRotare.x, 0.01f);
-		ImGui::DragFloat3("SphereCenter", &Sphere.center.x, 0.01f);
-		ImGui::DragFloat("SphereRadius", &Sphere.radius, 0.01f);
+		ImGui::DragFloat3("Project",&project.x,"%.3f",ImGuiInputTextFlags_ReadOnly);
 		ImGui::End();
 
 		// キー入力を受け取る
