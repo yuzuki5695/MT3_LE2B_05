@@ -123,6 +123,14 @@ void DrawSphere(const Sphere& sphere, const Matrix4x4& viewProiectionMatrix, con
 	}
 }
 
+//長さ（ノルム）
+float Length(const Vector3& v) {
+	float result;
+
+	result = sqrtf(powf(v.x, 2) + powf(v.y, 2) + powf(v.z, 2));
+
+	return result;
+};
 
 //正規化
 Vector3  Normalize(const Vector3& v) {
@@ -142,6 +150,9 @@ Vector3  Normalize(const Vector3& v) {
 
 Vector3 Subtract(const Vector3& point, const Vector3& segmet) {
 	Vector3 result;
+	Vector3 newpoint = Normalize(point);
+
+
 
 
 	return result;
