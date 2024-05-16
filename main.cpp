@@ -39,6 +39,11 @@ struct Segmet {
 	Vector3 diff;
 };
 
+struct Sphere{
+	Vector3 centrer;
+	float radius;
+};
+
 
 
 //加算
@@ -209,7 +214,12 @@ Vector3 ClosestPoint(const Vector3& point, const Segmet& segmet) {
 	}
 };
 
+bool IsCollision(const Sphere& v1, const Sphere& v2) {
+	float distanceSquared = (v1.centrer - v2.centrer);
+	float radiusSumSquared = (v1.radius + v2.radius) * (v1.radius + v2.radius);
 
+		return distanceSquared <= radiusSumSquared;
+};
 
 
 // Windowsアプリでのエントリーポイント(main関数)
@@ -245,6 +255,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		ImGui::InputFloat3("Project",&project.x,"%.3f",ImGuiInputTextFlags_ReadOnly);
 		ImGui::End();
 
+		Sphere sphere1;
+		Sphere sphere2;
+
 		// キー入力を受け取る
 		memcpy(preKeys, keys, 256);
 		Novice::GetHitKeyStateAll(keys);
@@ -253,6 +266,12 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		/// ↓更新処理ここから
 		///
 
+		float distance = Langth(sphere1.centrer - sphere1.centrer);
+
+		if (distance <= sphere1.centrer + sphere2.centrer) {
+			IsCollision(sphere1, sphere2);
+
+		};
 
 
 		///
