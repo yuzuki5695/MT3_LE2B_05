@@ -247,7 +247,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		Vector3 cameraPosition{};
 		
 		//回転
-		float rotationSpeed = 1.0f; 
+		//float rotationSpeed = 1.0f; 
 	
 		// キー入力を受け取る
 		memcpy(preKeys, keys, 256);
@@ -258,7 +258,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		///
 
 	 
-		rotare.y += rotationSpeed;
+		//rotare.y += rotationSpeed;
 
 	
 		
