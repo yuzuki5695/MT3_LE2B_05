@@ -150,29 +150,64 @@ Vector3  Normalize(const Vector3& v) {
 
 Vector3 Subtract(const Vector3& point, const Vector3& segmet) {
 	Vector3 result;
-	Vector3 newpoint = Normalize(point);
-
-
-
+	result.x = point.x - segmet.x;
+	result.y = point.y - segmet.y;
+	result.z = point.z - segmet.z;
+	return result;
 
 	return result;
 };
 
+
+float Dot(const Vector3& v1, const Vector3& v2) {
+	return v1.x * v2.x + v1.y * v2.y + v1.z * v2.z;
+}
+
+float MagnitudeSquared(const Vector3& v) {
+	return v.x * v.x + v.y * v.y + v.z * v.z;
+}
 
 Vector3 Project(const Vector3& v1, const Vector3& v2) {
-	Vector3 result;
-	
+	float dotProduct = Dot(v1, v2);
+	float magnitudeSquared = MagnitudeSquared(v2);
+	Vector3 projection;
+	projection = v2 * (dotProduct / magnitudeSquared);
 
-	return result;
+	return projection;
 };
+
+
 
 Vector3 ClosestPoint(const Vector3& point, const Segmet& segmet) {
 	Vector3 result;
+	Vector3 direction = segmet.origin - segmet.diff;
 
+	// 線分の始点から点へのベクトル
+	Vector3 v1 = point - segmet.diff;
 
-	return result;
+	// 線分の始点から終点へのベクトル
+	Vector3 v2 = segmet.origin - segmet.diff;
+
+	// v2 の長さの二乗
+	float magnitudeSquared = MagnitudeSquared(v2);
+
+	// v2 を v1 に射影する
+	float t = Dot(v1, v2) / magnitudeSquared;
+
+	// t が線分の始点側の外側にある場合
+	if (t < 0.0f) {
+		return segmet.diff;
+	}
+	// t が線分の終点側の外側にある場合
+	else if (t > 1.0f) {
+		return segmet.origin;
+	}
+	// t が線分の上にある場合
+	else {
+		// 線分上の点を計算
+		return segmet.diff + direction * t;
+	}
 };
-
 
 
 
