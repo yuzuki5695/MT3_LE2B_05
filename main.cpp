@@ -154,8 +154,7 @@ Vector3 Subtract(const Vector3& point, const Vector3& segmet) {
 	result.y = point.y - segmet.y;
 	result.z = point.z - segmet.z;
 	return result;
-
-	return result;
+	
 };
 
 
@@ -170,47 +169,24 @@ float MagnitudeSquared(const Vector3& v) {
 Vector3 Project(const Vector3& v1, const Vector3& v2) {
 	float dotProduct = Dot(v1, v2);
 	float magnitudeSquared = MagnitudeSquared(v2);
+	float scale = dotProduct / magnitudeSquared;
 	Vector3 projection;
-	projection = v2 * (dotProduct / magnitudeSquared);
+	projection.x = v2.x * scale;	
+	projection.y = v2.y * scale;	
+	projection.z = v2.z * scale;
 
 	return projection;
 };
 
-
-
-Vector3 ClosestPoint(const Vector3& point, const Segmet& segmet) {
-	Vector3 result;
-	Vector3 direction = segmet.origin - segmet.diff;
-
-	// 線分の始点から点へのベクトル
-	Vector3 v1 = point - segmet.diff;
-
-	// 線分の始点から終点へのベクトル
-	Vector3 v2 = segmet.origin - segmet.diff;
-
-	// v2 の長さの二乗
-	float magnitudeSquared = MagnitudeSquared(v2);
-
-	// v2 を v1 に射影する
-	float t = Dot(v1, v2) / magnitudeSquared;
-
-	// t が線分の始点側の外側にある場合
-	if (t < 0.0f) {
-		return segmet.diff;
-	}
-	// t が線分の終点側の外側にある場合
-	else if (t > 1.0f) {
-		return segmet.origin;
-	}
-	// t が線分の上にある場合
-	else {
-		// 線分上の点を計算
-		return segmet.diff + direction * t;
-	}
-};
-
-
-
+//
+//Vector3 ClosestPoint(const Vector3& point, const Segmet& segmet) {
+//	Vector3 result;
+//
+//
+//
+//	return result;
+//};
+//
 
 // Windowsアプリでのエントリーポイント(main関数)
 int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
@@ -230,10 +206,10 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		Segmet segmet{ {-2.0f,-1.0f,0.0f},{3.0f,2.0f,2.0f} };
 		Vector3 point{-1.5f,0.6f,0.6f};
 		Vector3 project = Project(Subtract(point, segmet.origin),segmet.diff);
-		Vector3 closestPoint = ClosestPoint(point, segmet);
+		//Vector3 closestPoint = ClosestPoint(point, segmet);
 
 		Sphere pointSphere{ point,0.01f };
-		Sphere closestPointSphere{ closestPoint,0.01f };
+	//	Sphere closestPointSphere{ closestPoint,0.01f };
 
 		
 
