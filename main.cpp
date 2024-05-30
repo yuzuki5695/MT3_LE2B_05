@@ -186,90 +186,104 @@ Vector3 Transform(const Vector3& vector, const Matrix4x4& matrix) {
 };
 
 
+static void DrawSphere(const Sphere& sphere, const Matrix4x4& viewProjectionMatrix, const Matrix4x4& viewportMatrix, uint32_t color)
+{
+	const uint32_t kSubdivision = 20;							//分割数
+	const float kLatStep = (float)M_PI / kSubdivision;			//緯度のステップ
+	const float kLonStep = 2.0f * (float)M_PI / kSubdivision;	//経度のステップ
 
-void DrawSphere(const Sphere& sphere, const Matrix4x4& viewProiectionMatrix, const Matrix4x4& viewproiectionMatrix, uint32_t color) {
+	// 緯度のループ
+	for (uint32_t latIndex = 0; latIndex < kSubdivision; ++latIndex)
+	{
+		float lat = -0.5f * (float)M_PI + latIndex * kLatStep;	//現在の緯度
 
-	const uint32_t KSubdivision = 10;
-	const float KLonEvery = 2.0f * float(M_PI) / float(KSubdivision);//経度分割1つ分の角度
-	const float KLatEvery = float(M_PI) / float(KSubdivision);//緯度分割1つ分の角度
+		//次の緯度
+		float nextLat = lat + kLatStep;
 
-	for (uint32_t latIndex = 0; latIndex <= KSubdivision; ++latIndex) {
-		float Lat = -float(M_PI) / 2.0f + KLatEvery * latIndex;
-		for (uint32_t LonIndex = 0; LonIndex <= KSubdivision; ++LonIndex) {
-			float Lon = KLonEvery * LonIndex;
+		//経度のループ
+		for (uint32_t lonIndex = 0; lonIndex < kSubdivision; ++lonIndex)
+		{
+			//現在の経度
+			float lon = lonIndex * kLonStep;
 
-			Vector3 a, b, c;
+			//次の経度
+			float nextLon = lon + kLonStep;
 
-			a = { sphere.center.x + sphere.radius * cos(Lon) * cos(Lat),
-				sphere.center.y + sphere.radius * sin(Lon) * cos(Lat),
-				sphere.center.z + sphere.radius * sin(Lat)
+			// 球面座標の計算
+			Vector3 pointA
+			{
+				sphere.center.x + sphere.radius * cos(lat) * cos(lon),
+				sphere.center.y + sphere.radius * sin(lat),
+				sphere.center.z + sphere.radius * cos(lat) * sin(lon)
 			};
-			b = { sphere.center.x + sphere.radius * cos(Lon) * cos(Lat),
-				sphere.center.y + sphere.radius * sin(Lon) * cos(Lat),
-				sphere.center.z + sphere.radius * sin(Lat)
+
+			Vector3 pointB
+			{
+				sphere.center.x + sphere.radius * cos(nextLat) * cos(lon),
+				sphere.center.y + sphere.radius * sin(nextLat),
+				sphere.center.z + sphere.radius * cos(nextLat) * sin(lon)
 			};
-			c = { sphere.center.x + sphere.radius * cos(Lon) * cos(Lat),
-				sphere.center.y + sphere.radius * sin(Lon) * cos(Lat),
-				sphere.center.z + sphere.radius * sin(Lat)
+
+			Vector3 pointC
+			{
+				sphere.center.x + sphere.radius * cos(lat) * cos(nextLon),
+				sphere.center.y + sphere.radius * sin(lat),
+				sphere.center.z + sphere.radius * cos(lat) * sin(nextLon)
 			};
 
-			Vector3 viewMatrixA = Transform(a, viewProiectionMatrix);
-			Vector3 viewprojectedMatrixA = Transform(viewMatrixA, viewproiectionMatrix);
-			Vector3 viewMatrixB = Transform(b, viewProiectionMatrix);
-			Vector3 viewprojectedMatrixB = Transform(viewMatrixB, viewproiectionMatrix);
-			Vector3 viewMatrixC = Transform(c, viewProiectionMatrix);
-			Vector3 viewprojectedMatrixC = Transform(viewMatrixC, viewproiectionMatrix);
+			// スクリーン座標に変換
+			pointA = Transform(pointA, Multiply(viewProjectionMatrix, viewportMatrix));
+			pointB = Transform(pointB, Multiply(viewProjectionMatrix, viewportMatrix));
+			pointC = Transform(pointC, Multiply(viewProjectionMatrix, viewportMatrix));
 
-			Novice::DrawLine(int(viewprojectedMatrixA.x), int(viewprojectedMatrixA.y),
-				int(viewprojectedMatrixB.x), int(viewprojectedMatrixB.y),color);
-
-			Novice::DrawLine(int(viewprojectedMatrixB.x), int(viewprojectedMatrixB.y),
-				int(viewprojectedMatrixC.x), int(viewprojectedMatrixC.y), color);
-
+			// 線分の描画
+			Novice::DrawLine((int)pointA.x, (int)pointA.y, (int)pointB.x, (int)pointB.y, color);
+			Novice::DrawLine((int)pointA.x, (int)pointA.y, (int)pointC.x, (int)pointC.y, color);
 		}
-
 	}
 }
 
 
 
+static void DrawGrid(const Matrix4x4& ViewProjectionMatrix, const Matrix4x4& ViewportMatrix)
+{
+	const float	kGridHalfWidth = 2.0f;										//Gridの半分の幅
+	const uint32_t kSubdivision = 10;										//分割数
+	const float kGridEvery = (kGridHalfWidth * 2.0f) / float(kSubdivision);	//1つ分の長さ
 
+	//水平方向の線を描画
+	for (uint32_t xIndex = 0; xIndex <= kSubdivision; xIndex++)
+	{
+		//上の情報を使ってワールド座標系上の始点と終点を求める
+		//X軸上の座標
+		float posX = -kGridHalfWidth + kGridEvery * xIndex;
 
-void DrawGrid(const Matrix4x4& viewProiectionMatrix, const Matrix4x4& viewproiectionMatrix) {
-	const float KGridHalfwidth = 2.0f;
-	const uint32_t KSubdivision = 10;
-	const float KGridEvery = (KGridHalfwidth * 2.0f) / float(KSubdivision);
+		//始点と終点
+		Vector3 start = { posX, 0.0f, -kGridHalfWidth };
+		Vector3 end = { posX, 0.0f, kGridHalfWidth };
+		//// ワールド座標系 -> スクリーン座標系まで変換をかける
+		start = Transform(start, Multiply(ViewProjectionMatrix, ViewportMatrix));
+		end = Transform(end, Multiply(ViewProjectionMatrix, ViewportMatrix));
 
-	//奥から手前への線を順々に引いていく
-	for (uint32_t xIndex = 0; xIndex <= KSubdivision; ++xIndex) {
-		float xCoord = -KGridHalfwidth + xIndex * KGridEvery;
+		//左から右も同じように順々に引いていく
+		for (uint32_t zIndex = 0; zIndex <= kSubdivision; zIndex++)
+		{
+			//奥から手前が左右に代わるだけ
+			//上の情報を使ってワールド座標系上の始点と終点を求める
+			//Z軸上の座標
+			float posZ = -kGridHalfWidth + kGridEvery * zIndex;
 
-		Vector3 startPoint(xCoord, 0.0f, -KGridHalfwidth);
-		Vector3 endPoint(xCoord, 0.0f, KGridHalfwidth);
+			//始点と終点
+			Vector3 startZ = { -kGridHalfWidth, 0.0f, posZ };
+			Vector3 endZ = { kGridHalfWidth, 0.0f, posZ };
+			//// ワールド座標系 -> スクリーン座標系まで変換をかける
+			startZ = Transform(startZ, Multiply(ViewProjectionMatrix, ViewportMatrix));
+			endZ = Transform(endZ, Multiply(ViewProjectionMatrix, ViewportMatrix));
 
-		Vector3 transformedStartPoint = Transform(startPoint, viewProiectionMatrix);
-		Vector3 transformedEndPoint = Transform(endPoint, viewProiectionMatrix);
-
-		Vector3 screenStartPoint = Transform(transformedStartPoint, viewproiectionMatrix);
-		Vector3 screenEndPoint = Transform(transformedEndPoint, viewproiectionMatrix);
-
-		Novice::DrawLine(int(screenStartPoint.x), int(screenStartPoint.y), int(screenEndPoint.x), int( screenEndPoint.y), 0XAAAAAAFF);
-	}
-
-	for (uint32_t zIndex = 0; zIndex <= KSubdivision; ++zIndex) {
-		float zCoord = -KGridHalfwidth + zIndex * KGridEvery;
-
-		Vector3 startPoint(-KGridHalfwidth, 0.0f, zCoord);
-		Vector3 endPoint(KGridHalfwidth, 0.0f, zCoord);
-
-
-		Vector3 transformedStartPoint = Transform(startPoint, viewProiectionMatrix);
-		Vector3 transformedEndPoint = Transform(endPoint, viewProiectionMatrix);
-
-		Vector3 screenStartPoint = Transform(transformedStartPoint, viewproiectionMatrix);
-		Vector3 screenEndPoint = Transform(transformedEndPoint, viewproiectionMatrix);
-
-		Novice::DrawLine(int(screenStartPoint.x), int(screenStartPoint.y), int( screenEndPoint.x), int(screenEndPoint.y), 0XAAAAAAFF);
+			//変換した画像を使って表示。色は薄い灰色(0xAAAAAAFF)、原点は黒ぐらいがいいが、なんでもいい
+			Novice::DrawLine((int)start.x, (int)start.y, (int)end.x, (int)end.y, 0x6F6F6FFF);
+			Novice::DrawLine((int)startZ.x, (int)startZ.y, (int)endZ.x, (int)endZ.y, 0x6F6F6FFF);
+		}
 	}
 }
 
