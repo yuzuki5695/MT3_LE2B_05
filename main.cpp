@@ -23,25 +23,9 @@ struct Matrix4x4 {
 
 
 struct Sphere {
-	Vector3 center;
-	float radius;
+	Vector3 center; //!< 中心点
+	float radius; //!< 半径
 };
-
-struct Line {
-	Vector3 origin;
-	Vector3 diff;
-};
-
-struct Ray {
-	Vector3 origin;
-	Vector3 diff;
-};
-
-struct Segment {
-	Vector3 origin;
-	Vector3 diff;
-};
-
 
 //加算
 Vector3 Add(const Vector3& v1, const Vector3& v2) {
@@ -53,40 +37,31 @@ Vector3 Add(const Vector3& v1, const Vector3& v2) {
 };
 
 
-//減算
-static Vector3 Subtract(const Vector3& v1, const Vector3& v2)
-{
-	Vector3 result{};
-	result.x = v1.x - v2.x;
-	result.y = v1.y - v2.y;
-	result.z = v1.z - v2.z;
-	return result;
-}
-
-//スカラー倍
-static Vector3 Multiply(float scalar, const Vector3& v)
-{
-	Vector3 result{};
-	result.x = scalar * v.x;
-	result.y = scalar * v.y;
-	result.z = scalar * v.z;
-	return result;
-}
-
-
 // 内積
 float Dot(const Vector3& v1, const Vector3& v2) {
 	return v1.x * v2.x + v1.y * v2.y + v1.z * v2.z;
 }
 
 //長さ（ノルム）
-float Length(const Vector3& v) {
-	float result;
-
-	result = sqrtf(powf(v.x, 2) + powf(v.y, 2) + powf(v.z, 2));
-
-	return result;
+float Length(const Vector3& v) {	
+	return sqrtf(powf(v.x, 2) + powf(v.y, 2) + powf(v.z, 2));
 };
+
+// 球と球の当たり判定
+bool IsCollision(const Sphere& v1, const Sphere& v2, int fige) {
+
+	float distance = Length(v2.center) - Length(v1.center);
+	// 半径の合計よりも短ければ衝突
+	if (distance <= v1.radius + v2.radius) {
+		 fige = 1;
+		 return true;
+	} else {
+		fige = 0;
+		return false;
+	}
+	
+}
+
 
 //正規化
 Vector3  Normalize(const Vector3& v) {
@@ -367,15 +342,6 @@ Vector3 Project(const Vector3& v1, const Vector3& v2) {
 	return (Dot(v1, v2) / powf(Length(v2), 2), v2);
 };
 
-Vector3 ClosestPoint(const Vector3& point, const Segment& segment)
-{
-	Vector3 segmentVec = segment.diff;
-	Vector3 pointToOrigin = Subtract(point, segment.origin);
-	float t = Dot(pointToOrigin, segmentVec) / Dot(segmentVec, segmentVec);
-	Vector3 closestPointOnSegment = Add(segment.origin, Multiply(t, segmentVec));
-	return closestPointOnSegment;
-}
-
 
 // Windowsアプリでのエントリーポイント(main関数)
 int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
@@ -383,22 +349,21 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	// ライブラリの初期化
 	Novice::Initialize(kWindowTitle, 1280, 720);
 
-	Segment segment{ {-2.0f,-1.0f,0.0f},{3.0f,2.0f,2.0f} };
 	Vector3 point{ -1.5f,0.6f,0.6f };
 
-	Vector3 project = Project(Subtract(point, segment.origin), segment.diff);
-	Vector3 closestPoint = ClosestPoint(point, segment);
-
-	Sphere sphere{};
-	Sphere pointSphere{ point,0.01f };	
-	Sphere closestpointSphere{ closestPoint,0.01f };
-
+	Sphere sphere1{};
+	Sphere sphere2{};
+	sphere1.radius = 0.5f;
+	sphere2.radius = 0.3f;
+	sphere2.center.x = 1.0f;
 	Vector3 rotate = {};
 	Vector3 translate = {};
 
 	Vector3 camaraTranslate = { 0.0f,1.9f,-6.49f };
 	Vector3 cameraRotate = { 0.26f,0.0f,0.0f };
 	
+	int fige = 0;
+
 	// キー入力結果を受け取る箱
 	char keys[256] = { 0 };
 	char preKeys[256] = { 0 };
@@ -426,15 +391,13 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		Matrix4x4 ViewProjectionMatrix = Multiply(viewWorldMatrix, Multiply(viewCameraMatrix, projectionMatrix));
 		Matrix4x4 ViewportMatrix = MakeViewportMatrix(0.0f, 0.0f, float(kWindowWidth), float(kWindowHeight), 0.0f, 1.0f);
 
-		Vector3 start = Transform(Transform(segment.origin, ViewProjectionMatrix), ViewportMatrix);
-		Vector3 end = Transform(Transform(Add(segment.origin, segment.diff), ViewProjectionMatrix), ViewportMatrix);
-
+		IsCollision(sphere1, sphere2, fige);
 
 		ImGui::Begin("Window");
-		ImGui::DragFloat3("Point", &point.x, 0.01f);
-		ImGui::DragFloat3("Segment.origin", &segment.origin.x, 0.01f);
-		ImGui::DragFloat3("Segment.diff", &segment.diff.x, 0.01f);
-		ImGui::InputFloat3("Project", &project.x, "%.3f", ImGuiInputTextFlags_ReadOnly);
+		ImGui::DragFloat3("sphere[1]", &sphere1.center.x, 0.01f);
+		ImGui::DragFloat("sphere[1]", &sphere1.radius, 0.01f);
+		ImGui::DragFloat3("sphere[2]", &sphere2.center.x, 0.01f);		
+		ImGui::DragFloat("sphere[2]", &sphere2.radius, 0.01f);
 
 		///
 		/// ↑更新処理ここまで
@@ -444,14 +407,17 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		/// ↓描画処理ここから
 		///
 
+		Novice::ScreenPrintf(0, 0, "fige = %d", fige);
+
 		DrawGrid(ViewProjectionMatrix, ViewportMatrix);
 
-		DrawSphere(pointSphere, ViewProjectionMatrix, ViewportMatrix, RED);
-		DrawSphere(closestpointSphere, ViewProjectionMatrix, ViewportMatrix, BLACK);
 
-
-		Novice::DrawLine((int)start.x, (int)start.y, (int)end.x, (int)end.y, WHITE);
 		
+		DrawSphere(sphere1, ViewProjectionMatrix, ViewportMatrix, WHITE);
+	
+
+		DrawSphere(sphere2, ViewProjectionMatrix, ViewportMatrix, WHITE);
+
 		ImGui::End();
 
 		///
