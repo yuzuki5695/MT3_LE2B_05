@@ -42,7 +42,12 @@ struct Segment {
 	Vector3 diff;
 };
 
+struct AABB {
+	Vector3 min; // !<最小値
+	Vector3 max; // !<最大値 
+};
 
+bool IsCollision(const AABB& aabb1, const AABB& aabb2);
 
 //加算
 Vector3 Add(const Vector3& v1, const Vector3& v2) {
@@ -320,6 +325,24 @@ Vector3 ClosestPoint(const Vector3& point, const Segment& segment)
 	return closestPointOnSegment;
 }
 
+void DrawAABB(const AABB& aabb, const Matrix4x4& viewProiectionMatrix, const Matrix4x4& ViewportMatrix, uint32_t color) {
+
+	Vector3 startPointX = Transform(aabb.min, viewProiectionMatrix);
+	Vector3 endPointX = Transform(aabb.max, viewProiectionMatrix);
+	Vector3 startPointZ = Transform(aabb.min, viewProiectionMatrix);
+	Vector3 endPointZ = Transform(aabb.max, viewProiectionMatrix);
+	for (uint32_t xIndex = 0; xIndex <= 8; xIndex++) {
+		startPointX = Transform(startPointX, Multiply(viewProiectionMatrix, ViewportMatrix));
+		endPointX = Transform(endPointX, Multiply(viewProiectionMatrix, ViewportMatrix));
+		Novice::DrawLine((int)startPointX.x, (int)startPointX.y, (int)endPointX.x, (int)endPointX.y, color);
+	}
+	for (uint32_t zIndex = 0; zIndex <= 8; zIndex++) {
+		startPointZ = Transform(startPointX, Multiply(viewProiectionMatrix, ViewportMatrix));
+		endPointZ = Transform(endPointX, Multiply(viewProiectionMatrix, ViewportMatrix));
+		Novice::DrawLine((int)startPointZ.x, (int)startPointZ.y, (int)endPointZ.x, (int)endPointZ.y, color);
+	}
+}
+
 // Windowsアプリでのエントリーポイント(main関数)
 int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
@@ -339,6 +362,23 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	Vector3 camaraTranslate = { 0.0f,1.9f,-6.49f };
 	Vector3 cameraRotate = { 0.26f,0.0f,0.0f };
 
+	AABB aabb1 = {
+		.min{-0.5f,-0.5f,-0.5f},
+		.max{0.0f,0.0f,0.0f}
+	};
+	AABB aabb2 = {
+	.min{0.2f,0.2f,0.2f},
+	.max{1.0f,1.0f,1.0f}
+	};
+
+	bool fige = false;
+
+	aabb1.min.x = (std::min)(aabb1.min.x, aabb1.max.x);
+	aabb2.max.x = (std::max)(aabb2.min.x, aabb2.max.x);
+	aabb1.min.y = (std::min)(aabb1.min.y, aabb1.max.y);
+	aabb2.max.y = (std::max)(aabb2.min.y, aabb2.max.y);
+	aabb1.min.z = (std::min)(aabb1.min.z, aabb1.max.z);
+	aabb2.max.z = (std::max)(aabb2.min.z, aabb2.max.z);
 
 	// キー入力結果を受け取る箱
 	char keys[256] = { 0 };
@@ -370,25 +410,41 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		Vector3 start = Transform(Transform(segment.origin, ViewProjectionMatrix), ViewportMatrix);
 		Vector3 end = Transform(Transform(Add(segment.origin, segment.diff), ViewProjectionMatrix), ViewportMatrix);
 
-		ImGui::Begin("Window");
-		//ImGui::DragFloat3("CameraTranslate", &camaraTranslate.x, 0.01f);
-		//ImGui::DragFloat3("CameraRotate", &cameraRotate.x, 0.01f);
-		//ImGui::InputFloat3("Project", &project.x, "%.3f", ImGuiInputTextFlags_ReadOnly);
 
+
+		if ((aabb1.min.x <= aabb2.max.x && aabb1.max.x >= aabb2.min.x)&&// x軸
+			(aabb1.min.y <= aabb2.max.y && aabb1.max.y >= aabb2.min.y)&&// y軸
+			(aabb1.min.z <= aabb2.max.z && aabb1.max.z >= aabb2.min.z)  // z軸
+			){
+			// 衝突
+			fige = true;
+		}
+
+
+		ImGui::Begin("Window");
+		ImGui::DragFloat3("aabb1", &aabb1.min.x, 0.01f);
+		ImGui::DragFloat3("aabb1", &aabb1.max.x, 0.01f);
+		ImGui::DragFloat3("aabb2", &aabb2.min.x, 0.01f);
+		ImGui::DragFloat3("aabb2", &aabb2.max.x, 0.01f);
+	    
 		///
 		/// ↑更新処理ここまで
 		///
-
-		DrawGrid(ViewProjectionMatrix, ViewportMatrix);
-		//DrawSphere(closestPointSphere, ViewProjectionMatrix, ViewportMatrix, BLACK);
-	//	Novice::DrawLine(int(start.x), int(start.y), int(end.x), int(end.y), WHITE);
-
-		ImGui::End();
+	
 		///
 		/// ↓描画処理ここから
 		///
 
-	
+		DrawGrid(ViewProjectionMatrix, ViewportMatrix);
+
+		if (fige) {
+		
+		}
+
+		DrawAABB(aabb1, ViewProjectionMatrix, ViewportMatrix, WHITE);
+
+		ImGui::End();	
+		
 		///
 		/// ↑描画処理ここまで
 		///
