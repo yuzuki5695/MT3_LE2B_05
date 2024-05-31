@@ -37,12 +37,72 @@ struct Ray {
 	Vector3 diff;
 };
 
-struct Segmet {
+struct Segment {
 	Vector3 origin;
 	Vector3 diff;
 };
 
 
+
+//加算
+Vector3 Add(const Vector3& v1, const Vector3& v2) {
+	Vector3 result;
+	result.x = (v1.x + v2.x);
+	result.y = (v1.y + v2.y);
+	result.z = (v1.z + v2.z);
+	return result;
+};
+
+
+//減算
+static Vector3 Subtract(const Vector3& v1, const Vector3& v2)
+{
+	Vector3 result{};
+	result.x = v1.x - v2.x;
+	result.y = v1.y - v2.y;
+	result.z = v1.z - v2.z;
+	return result;
+}
+
+//スカラー倍
+static Vector3 Multiply(float scalar, const Vector3& v)
+{
+	Vector3 result{};
+	result.x = scalar * v.x;
+	result.y = scalar * v.y;
+	result.z = scalar * v.z;
+	return result;
+}
+
+
+// 内積
+float Dot(const Vector3& v1, const Vector3& v2) {
+	return v1.x * v2.x + v1.y * v2.y + v1.z * v2.z;
+}
+
+//長さ（ノルム）
+float Length(const Vector3& v) {
+	float result;
+
+	result = sqrtf(powf(v.x, 2) + powf(v.y, 2) + powf(v.z, 2));
+
+	return result;
+};
+
+//正規化
+Vector3  Normalize(const Vector3& v) {
+	Vector3 result{};
+
+	float length = Length(v);
+
+	if (length != 0.0) {
+		result.x = v.x / length;
+		result.y = v.y / length;
+		result.z = v.z / length;
+	}
+
+	return result;
+};
 
 // 1. X軸回転行列
 Matrix4x4 MakeRotateXMatrix(float radian) {
@@ -106,11 +166,8 @@ Matrix4x4 Multiply(const Matrix4x4 m1, const Matrix4x4 m2) {
 	return result;
 };
 
-
-
-
 //5.3次元アフィン変換
-Matrix4x4 MakeAftineMatrix(const Vector3& scale, const Vector3& rotate, const Vector3& translate) {
+Matrix4x4 MakeAffineMatrix(const Vector3& scale, const Vector3& rotate, const Vector3& translate) {
 	Matrix4x4 result;
 	Matrix4x4 rotateXMatrix = MakeRotateXMatrix(rotate.x);
 	Matrix4x4 rotateYMatrix = MakeRotateYMatrix(rotate.y);
@@ -125,9 +182,23 @@ Matrix4x4 MakeAftineMatrix(const Vector3& scale, const Vector3& rotate, const Ve
 	return result;
 };
 
+//3次元ベクトルを同次座標として変換する 
+Vector3 Transform(const Vector3& vector, const Matrix4x4& matrix) {
 
+	Vector3 result;
+	result.x = vector.x * matrix.m[0][0] + vector.y * matrix.m[1][0] + vector.z * matrix.m[2][0] + 1.0f * matrix.m[3][0];//PosX
+	result.y = vector.x * matrix.m[0][1] + vector.y * matrix.m[1][1] + vector.z * matrix.m[2][1] + 1.0f * matrix.m[3][1];//PosY
+	result.z = vector.x * matrix.m[0][2] + vector.y * matrix.m[1][2] + vector.z * matrix.m[2][2] + 1.0f * matrix.m[3][2];//PosZ
 
-//4.逆行列
+	float w = vector.x * matrix.m[0][3] + vector.y * matrix.m[1][3] + vector.z * matrix.m[2][3] + 1.0f * matrix.m[3][3];;
+	assert(w != 0.0f);
+	result.x /= w;
+	result.y /= w;
+	result.z /= w;
+	return result;
+};
+
+// 逆行列
 Matrix4x4 Inverse(const Matrix4x4& matrix) {
 
 	float det
@@ -161,17 +232,6 @@ Matrix4x4 Inverse(const Matrix4x4& matrix) {
 	return result;
 };
 
-
-
-//加算
-Vector3 Add(const Vector3& v1, const Vector3& v2) {
-	Vector3 result;
-	result.x = (v1.x + v2.x);
-	result.y = (v1.y + v2.y);
-	result.z = (v1.z + v2.z);
-	return result;
-};
-
 //クロス積
 Vector3 Cross(const Vector3& v1, const Vector3& v2) {
 	Vector3 result;
@@ -182,175 +242,6 @@ Vector3 Cross(const Vector3& v1, const Vector3& v2) {
 	return result;
 };
 
-
-//3次元ベクトルを同次座標として変換する 
-Vector3 Transform(const Vector3& vector, const Matrix4x4& matrix) {
-
-	Vector3 result;
-	result.x = vector.x * matrix.m[0][0] + vector.y * matrix.m[1][0] + vector.z * matrix.m[2][0] + 1.0f * matrix.m[3][0];//PosX
-	result.y = vector.x * matrix.m[0][1] + vector.y * matrix.m[1][1] + vector.z * matrix.m[2][1] + 1.0f * matrix.m[3][1];//PosY
-	result.z = vector.x * matrix.m[0][2] + vector.y * matrix.m[1][2] + vector.z * matrix.m[2][2] + 1.0f * matrix.m[3][2];//PosZ
-
-	float w = vector.x * matrix.m[0][3] + vector.y * matrix.m[1][3] + vector.z * matrix.m[2][3] + 1.0f * matrix.m[3][3];;
-	assert(w != 0.0f);
-	result.x /= w;
-	result.y /= w;
-	result.z /= w;
-	return result;
-};
-
-
-
-void DrawSphere(const Sphere& sphere, const Matrix4x4& viewProiectionMatrix, const Matrix4x4& viewproiectionMatrix, uint32_t color) {
-
-	const uint32_t KSubdivision = 10;
-	const float KLonEvery = 2.0f * float(M_PI) / float(KSubdivision);//経度分割1つ分の角度
-	const float KLatEvery = float(M_PI) / float(KSubdivision);//緯度分割1つ分の角度
-
-	for (uint32_t latIndex = 0; latIndex <= KSubdivision; ++latIndex) {
-		float Lat = -0.5f * float(M_PI) + KSubdivision * KLonEvery;
-		float nextLat = Lat+ KLonEvery;
-
-		for (uint32_t LonIndex = 0; LonIndex <= KSubdivision; ++LonIndex) {	
-			float  Lon = LonIndex * KLatEvery;
-			float nextlon = Lon + KLatEvery;
-			Vector3 a, b, c;
-
-			a = { sphere.center.x + sphere.radius * cos(Lat) * cos(Lon),
-				sphere.center.y + sphere.radius * sin(Lat) ,
-				sphere.center.z + sphere.radius * cos(Lat) * sin(Lon)
-			};
-			b = { sphere.center.x + sphere.radius * cos(nextLat) * cos(Lon),
-				sphere.center.y + sphere.radius * sin(nextLat),
-				sphere.center.z + sphere.radius * cos(nextLat) * sin(Lon)
-			};
-			c = { sphere.center.x + sphere.radius * cos(Lat) * cos(nextlon),
-				sphere.center.y + sphere.radius * sin(Lat),
-				sphere.center.z + sphere.radius * cos(Lat) * sin(nextlon)
-			};
-
-			Vector3 viewMatrixA = Transform(a, Multiply(viewProiectionMatrix, viewproiectionMatrix));
-			Vector3 viewMatrixB = Transform(b, Multiply(viewProiectionMatrix, viewproiectionMatrix));
-			Vector3 viewMatrixC = Transform(c, Multiply(viewProiectionMatrix, viewproiectionMatrix));
-
-			Novice::DrawLine(int(viewMatrixA.x), int(viewMatrixA.y),
-				int(viewMatrixB.x), int(viewMatrixB.y), color);
-
-			Novice::DrawLine(int(viewMatrixA.x), int(viewMatrixA.y),
-				int(viewMatrixC.x), int(viewMatrixC.y), color);
-
-		}
-
-	}
-}
-
-
-
-
-
-void DrawGrid(const Matrix4x4& viewProiectionMatrix, const Matrix4x4& ViewportMatrix) {
-	const float KGridHalfwidth = 2.0f;
-	const uint32_t KSubdivision = 10;
-	const float KGridEvery = (KGridHalfwidth * 2.0f) / float(KSubdivision);
-
-	//奥から手前への線を順々に引いていく
-	for (uint32_t xIndex = 0; xIndex <= KSubdivision; xIndex++) {
-		float posX = -KGridHalfwidth + xIndex * KGridEvery;
-
-		Vector3 startPointX(posX, 0.0f, -KGridHalfwidth);
-		Vector3 endPointX(posX, 0.0f, KGridHalfwidth);
-
-		startPointX = Transform(startPointX, Multiply(viewProiectionMatrix, ViewportMatrix));
-		endPointX = Transform(endPointX,Multiply(viewProiectionMatrix, ViewportMatrix));
-		//左から右も同じように順々に引いていく
-		for (uint32_t zIndex = 0; zIndex <= KSubdivision; zIndex++)
-		{
-			//奥から手前が左右に代わるだけ
-			//上の情報を使ってワールド座標系上の始点と終点を求める
-			//Z軸上の座標
-			float posZ = -KGridHalfwidth + KGridEvery * zIndex;
-
-			//始点と終点
-			Vector3 startPointZ = { -KGridHalfwidth, 0.0f, posZ };
-			Vector3 endPointZ = { KGridHalfwidth, 0.0f, posZ };
-			//// ワールド座標系 -> スクリーン座標系まで変換をかける
-			startPointZ = Transform(startPointZ, Multiply(viewProiectionMatrix, ViewportMatrix));
-			endPointZ = Transform(endPointZ, Multiply(viewProiectionMatrix, ViewportMatrix));
-
-			//変換した画像を使って表示。色は薄い灰色(0xAAAAAAFF)、原点は黒ぐらいがいいが、なんでもいい
-			Novice::DrawLine((int)startPointX.x, (int)startPointX.y, (int)endPointX.x, (int)endPointX.y, 0x6F6F6FFF);
-			Novice::DrawLine((int)startPointZ.x, (int)startPointZ.y, (int)endPointZ.x, (int)endPointZ.y, 0x6F6F6FFF);
-		}
-	}
-
-}
-
-
-//長さ（ノルム）
-float Length(const Vector3& v) {
-	float result;
-
-	result = sqrtf(powf(v.x, 2) + powf(v.y, 2) + powf(v.z, 2));
-
-	return result;
-};
-
-//正規化
-Vector3  Normalize(const Vector3& v) {
-	Vector3 result{};
-
-	float length = Length(v);
-
-	if (length != 0.0) {
-		result.x = v.x / length;
-		result.y = v.y / length;
-		result.z = v.z / length;
-	}
-
-	return result;
-};
-
-
-Vector3 Subtract(const Vector3& point, const Vector3& segmet) {
-	Vector3 result;
-	result.x = point.x - segmet.x;
-	result.y = point.y - segmet.y;
-	result.z = point.z - segmet.z;
-	return result;
-
-};
-
-
-//スカラー倍
-static Vector3 Multiply(float scalar, const Vector3& v)
-{
-	Vector3 result{};
-	result.x = scalar * v.x;
-	result.y = scalar * v.y;
-	result.z = scalar * v.z;
-	return result;
-}
-float Dot(const Vector3& v1, const Vector3& v2) {
-	return v1.x * v2.x + v1.y * v2.y + v1.z * v2.z;
-}
-
-float MagnitudeSquared(const Vector3& v) {
-	return v.x * v.x + v.y * v.y + v.z * v.z;
-}
-
-Vector3 Project(const Vector3& v1, const Vector3& v2) {
-	
-	return (Dot(v1, v2) / powf(Length(v2), 2), v2);
-};
-
-Vector3 ClosestPoint(const Vector3& point, const Segmet& segment)
-{
-	Vector3 segmentVec = segment.diff;
-	Vector3 pointToOrigin = Subtract(point, segment.origin);
-	float t = Dot(pointToOrigin, segmentVec) / Dot(segmentVec, segmentVec);
-	Vector3 closestPointOnSegment = Add(segment.origin, Multiply(t, segmentVec));
-	return closestPointOnSegment;
-}
 
 //1.透視投影行列　
 Matrix4x4 MakePerspectiveFovMatrix(float fovY, float aspectRatio, float nearClip, float farclip) {
@@ -378,8 +269,6 @@ Matrix4x4 MakeOrthographicMatrix(float left, float top, float right, float botto
 	return result;
 };
 
-
-
 //3.ビューボート変換行列
 Matrix4x4 MakeViewportMatrix(float left, float top, float  width, float height, float minDepth, float maxDepth) {
 	Matrix4x4 result{};
@@ -388,12 +277,48 @@ Matrix4x4 MakeViewportMatrix(float left, float top, float  width, float height, 
 	result.m[1][0] = 0.0f; result.m[1][1] = -(height / 2.0f); result.m[1][2] = 0.0f; result.m[1][3] = 0.0f;
 	result.m[2][0] = 0.0f; result.m[2][1] = 0.0f; result.m[2][2] = (maxDepth - minDepth); result.m[2][3] = 0.0f;
 	result.m[3][0] = left + (width / 2); result.m[3][1] = top + (height / 2.0f); result.m[3][2] = minDepth; result.m[3][3] = 1.0f;
-
-
-
 	return result;
 };
 
+void DrawGrid(const Matrix4x4& viewProiectionMatrix, const Matrix4x4& ViewportMatrix) {
+	const float KGridHalfwidth = 2.0f;
+	const uint32_t KSubdivision = 10;
+	const float KGridEvery = (KGridHalfwidth * 2.0f) / float(KSubdivision);
+
+	for (uint32_t xIndex = 0; xIndex <= KSubdivision; xIndex++) {
+		float posX = -KGridHalfwidth + xIndex * KGridEvery;
+
+		Vector3 startPointX(posX, 0.0f, -KGridHalfwidth);
+		Vector3 endPointX(posX, 0.0f, KGridHalfwidth);
+
+		startPointX = Transform(startPointX, Multiply(viewProiectionMatrix, ViewportMatrix));
+		endPointX = Transform(endPointX,Multiply(viewProiectionMatrix, ViewportMatrix));
+		Novice::DrawLine((int)startPointX.x, (int)startPointX.y, (int)endPointX.x, (int)endPointX.y, 0x6F6F6FFF);		
+	}
+	for (uint32_t zIndex = 0; zIndex <= KSubdivision; zIndex++){
+		float posZ = -KGridHalfwidth + KGridEvery * zIndex;
+
+		Vector3 startPointZ = { -KGridHalfwidth, 0.0f, posZ };
+		Vector3 endPointZ = { KGridHalfwidth, 0.0f, posZ };
+		startPointZ = Transform(startPointZ, Multiply(viewProiectionMatrix, ViewportMatrix));
+		endPointZ = Transform(endPointZ, Multiply(viewProiectionMatrix, ViewportMatrix));
+		Novice::DrawLine((int)startPointZ.x, (int)startPointZ.y, (int)endPointZ.x, (int)endPointZ.y, 0x6F6F6FFF);
+	}
+
+}
+
+Vector3 Project(const Vector3& v1, const Vector3& v2) {	
+	return (Dot(v1, v2) / powf(Length(v2), 2), v2);
+};
+
+Vector3 ClosestPoint(const Vector3& point, const Segment& segment)
+{
+	Vector3 segmentVec = segment.diff;
+	Vector3 pointToOrigin = Subtract(point, segment.origin);
+	float t = Dot(pointToOrigin, segmentVec) / Dot(segmentVec, segmentVec);
+	Vector3 closestPointOnSegment = Add(segment.origin, Multiply(t, segmentVec));
+	return closestPointOnSegment;
+}
 
 // Windowsアプリでのエントリーポイント(main関数)
 int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
@@ -401,14 +326,12 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	// ライブラリの初期化
 	Novice::Initialize(kWindowTitle, 1280, 720);
 
-	Segmet segmet{ {-2.0f,-1.0f,0.0f},{3.0f,2.0f,2.0f} };
+	Segment segment{ {-2.0f,-1.0f,0.0f},{3.0f,2.0f,2.0f} };
 	Vector3 point{ -1.5f,0.6f,0.6f };
 
-	Vector3 project = Project(Subtract(point, segmet.origin), segmet.diff);
-	Vector3 closestPoint = ClosestPoint(point, segmet);
+	Vector3 project = Project(Subtract(point, segment.origin), segment.diff);
+	Vector3 closestPoint = ClosestPoint(point, segment);
 
-	Sphere sphere{};
-	Sphere pointSphere{ point,0.01f };
 	Sphere closestPointSphere{ closestPoint,0.01f };
 
 	Vector3 rotate = {};
@@ -434,36 +357,31 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		/// ↓更新処理ここから
 		///
 
-		Matrix4x4 worldMatrix = MakeAftineMatrix({ 1.0f,1.0f,1.0f }, { 0.0f,0.0f,0.0f }, { 0.0f,0.0f,0.0f });
+		Matrix4x4 worldMatrix = MakeAffineMatrix({ 1.0f,1.0f,1.0f }, { 0.0f,0.0f,0.0f }, { 0.0f,0.0f,0.0f });
 		Matrix4x4 viewWorldMatrix = Inverse(worldMatrix);
 
-		Matrix4x4 cameraMatrxi = MakeAftineMatrix({ 1.0f,1.0f,1.0f }, cameraRotate, camaraTranslate);
+		Matrix4x4 cameraMatrxi = MakeAffineMatrix({ 1.0f,1.0f,1.0f }, cameraRotate, camaraTranslate);
 		Matrix4x4 viewCameraMatrix = Inverse(cameraMatrxi);
+
 		Matrix4x4 projectionMatrix = MakePerspectiveFovMatrix(0.45f, float(kWindowWidth) / float(kWindowHeight), 0.1f, 100.0f);
 		Matrix4x4 ViewProjectionMatrix = Multiply(viewWorldMatrix, Multiply(viewCameraMatrix, projectionMatrix));
 		Matrix4x4 ViewportMatrix = MakeViewportMatrix(0.0f, 0.0f, float(kWindowWidth), float(kWindowHeight), 0.0f, 1.0f);
 
-		Vector3 start = Transform(Transform(segmet.origin, ViewProjectionMatrix), ViewportMatrix);
-		Vector3 end = Transform(Transform(Add(segmet.origin, segmet.diff), ViewProjectionMatrix), ViewportMatrix);
-		
+		Vector3 start = Transform(Transform(segment.origin, ViewProjectionMatrix), ViewportMatrix);
+		Vector3 end = Transform(Transform(Add(segment.origin, segment.diff), ViewProjectionMatrix), ViewportMatrix);
+
 		ImGui::Begin("Window");
-		ImGui::DragFloat3("CameraTranslate", &camaraTranslate.x, 0.01f);
-		ImGui::DragFloat3("CameraRotate", &cameraRotate.x, 0.01f);
-		ImGui::DragFloat3("SphereCenter", &sphere.center.x, 0.01f);
-		ImGui::InputFloat3("Project", &project.x, "%.3f", ImGuiInputTextFlags_ReadOnly);
-		ImGui::DragFloat("SphereRadius", &sphere.radius, 0.01f);
+		//ImGui::DragFloat3("CameraTranslate", &camaraTranslate.x, 0.01f);
+		//ImGui::DragFloat3("CameraRotate", &cameraRotate.x, 0.01f);
+		//ImGui::InputFloat3("Project", &project.x, "%.3f", ImGuiInputTextFlags_ReadOnly);
 
 		///
 		/// ↑更新処理ここまで
 		///
 
 		DrawGrid(ViewProjectionMatrix, ViewportMatrix);
-
-		DrawSphere(sphere, ViewProjectionMatrix, ViewportMatrix, GREEN);
-		DrawSphere(pointSphere, ViewProjectionMatrix, ViewportMatrix, RED);
-		DrawSphere(closestPointSphere, ViewProjectionMatrix, ViewportMatrix, BLACK);
-		
-		Novice::DrawLine(int(start.x), int(start.y), int(end.x), int(end.y), WHITE);
+		//DrawSphere(closestPointSphere, ViewProjectionMatrix, ViewportMatrix, BLACK);
+	//	Novice::DrawLine(int(start.x), int(start.y), int(end.x), int(end.y), WHITE);
 
 		ImGui::End();
 		///
