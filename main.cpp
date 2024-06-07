@@ -48,18 +48,10 @@ float Length(const Vector3& v) {
 };
 
 // 球と球の当たり判定
-bool IsCollision(const Sphere& v1, const Sphere& v2, int fige) {
-
-	float distance = Length(v2.center) - Length(v1.center);
+bool  IsCollision(const Sphere& sphere1, const Sphere& sphere2) {
+	float distance = Length(Add(sphere2.center, Vector3{ -sphere1.center.x, -sphere1.center.y, -sphere1.center.z }));
 	// 半径の合計よりも短ければ衝突
-	if (distance <= v1.radius + v2.radius) {
-		 fige = 1;
-		 return true;
-	} else {
-		fige = 0;
-		return false;
-	}
-	
+	return distance <= (sphere1.radius + sphere2.radius);
 }
 
 
@@ -362,7 +354,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	Vector3 camaraTranslate = { 0.0f,1.9f,-6.49f };
 	Vector3 cameraRotate = { 0.26f,0.0f,0.0f };
 	
-	int fige = 0;
+	bool fige = false;
 
 	// キー入力結果を受け取る箱
 	char keys[256] = { 0 };
@@ -391,7 +383,14 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		Matrix4x4 ViewProjectionMatrix = Multiply(viewWorldMatrix, Multiply(viewCameraMatrix, projectionMatrix));
 		Matrix4x4 ViewportMatrix = MakeViewportMatrix(0.0f, 0.0f, float(kWindowWidth), float(kWindowHeight), 0.0f, 1.0f);
 
-		IsCollision(sphere1, sphere2, fige);
+		// 球と球の当たり判定
+		if(IsCollision(sphere1, sphere2)){
+			// 球同士が当たったら
+			fige = true;
+		} else {
+			// 球同士が当たらなかったら
+			fige = false;
+		}
 
 		ImGui::Begin("Window");
 		ImGui::DragFloat3("sphere[1]", &sphere1.center.x, 0.01f);
@@ -407,16 +406,16 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		/// ↓描画処理ここから
 		///
 
-		Novice::ScreenPrintf(0, 0, "fige = %d", fige);
-
 		DrawGrid(ViewProjectionMatrix, ViewportMatrix);
 
 
-		
-		DrawSphere(sphere1, ViewProjectionMatrix, ViewportMatrix, WHITE);
-	
-
-		DrawSphere(sphere2, ViewProjectionMatrix, ViewportMatrix, WHITE);
+		if (fige == true) {
+			DrawSphere(sphere1, ViewProjectionMatrix, ViewportMatrix, RED);
+			DrawSphere(sphere2, ViewProjectionMatrix, ViewportMatrix, RED);
+		} else if (fige == false) {
+			DrawSphere(sphere1, ViewProjectionMatrix, ViewportMatrix, GREEN);
+			DrawSphere(sphere2, ViewProjectionMatrix, ViewportMatrix, GREEN);
+		}
 
 		ImGui::End();
 
