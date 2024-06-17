@@ -27,6 +27,11 @@ struct Sphere {
 	float radius; //!< 半径
 };
 
+struct  Plane{
+	Vector3 normal; //!< 法線
+	float distance; //!< 距離
+};
+
 //加算
 Vector3 Add(const Vector3& v1, const Vector3& v2) {
 	Vector3 result;
@@ -47,11 +52,13 @@ float Length(const Vector3& v) {
 	return sqrtf(powf(v.x, 2) + powf(v.y, 2) + powf(v.z, 2));
 };
 
-// 球と球の当たり判定
-bool  IsCollision(const Sphere& sphere1, const Sphere& sphere2) {
-	float distance = Length(Add(sphere2.center, Vector3{ -sphere1.center.x, -sphere1.center.y, -sphere1.center.z }));
-	// 半径の合計よりも短ければ衝突
-	return distance <= (sphere1.radius + sphere2.radius);
+
+// 球と平面の当たり判定
+bool  IsCollision(const Sphere& sphere, const Plane& plane) {
+	// 球の中心と平面の距離を計算
+	float distance = Dot(plane.normal, sphere.center) + plane.distance;
+	// 距離の絶対値が球の半径以下であれば衝突
+	return std::abs(distance) <= sphere.radius;
 }
 
 
@@ -208,7 +215,6 @@ Vector3 Cross(const Vector3& v1, const Vector3& v2) {
 	return result;
 };
 
-
 //1.透視投影行列　
 Matrix4x4 MakePerspectiveFovMatrix(float fovY, float aspectRatio, float nearClip, float farclip) {
 	Matrix4x4 result{};
@@ -334,6 +340,39 @@ Vector3 Project(const Vector3& v1, const Vector3& v2) {
 	return (Dot(v1, v2) / powf(Length(v2), 2), v2);
 };
 
+Vector3 Perpendicular(const Vector3& vector) {
+	if (vector.x != 0.0f || vector.y != 0.0f) {
+		return { -vector.y,vector.x,0.0f };
+	}
+	return { 0.0f,-vector.z,vector.y };
+}
+
+static Vector3 ToVector3(Matrix4x4 m){
+	return  Vector3(m.m[0][3], m.m[1][3], m.m[2][3]);
+}
+
+void DrawPlane(const Plane& plane,const Matrix4x4& viewProjectionMatrix,const Matrix4x4& ViewportMatrix,uint32_t color){
+		
+	Perpendicular(plane.normal);
+
+	Vector3 center = ToVector3(Multiply(plane.distance,plane.normal));// 1
+	Vector3 perpendiculars[4];
+	perpendiculars[0] = Normalize(Perpendicular(plane.normal));// 2
+	perpendiculars[1] = {-perpendiculars[0].x,-perpendiculars[0].y ,-perpendiculars[0].z};// 3
+	perpendiculars[2] = Cross(plane.normal,perpendiculars[0]);// 4
+	perpendiculars[3] = { -perpendiculars[2].x,-perpendiculars[2].y ,-perpendiculars[2].z };// 5
+	// 6
+	Vector3 points[4];
+	for (uint32_t index = 0; index < 4; ++index) {
+		Vector3 extend = Multiply(2.0f, perpendiculars[index]);
+		Vector3 point = Add(center,extend);
+		point[index] = Transform(Transform(point, viewProjectionMatrix), ViewportMatrix);
+	}
+
+	Novice::DrawLine(int(points[0].x), int(points[0].y), int(points[1].x), int(points[1].y),WHITE);
+	Novice::DrawLine(int(points[1].x), int(points[1].y), int(points[2].x), int(points[2].y), WHITE);
+}
+
 
 // Windowsアプリでのエントリーポイント(main関数)
 int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
@@ -341,20 +380,18 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	// ライブラリの初期化
 	Novice::Initialize(kWindowTitle, 1280, 720);
 
-	Vector3 point{ -1.5f,0.6f,0.6f };
-
-	Sphere sphere1{};
-	Sphere sphere2{};
-	sphere1.radius = 0.5f;
-	sphere2.radius = 0.3f;
-	sphere2.center.x = 1.0f;
-	Vector3 rotate = {};
-	Vector3 translate = {};
-
 	Vector3 camaraTranslate = { 0.0f,1.9f,-6.49f };
 	Vector3 cameraRotate = { 0.26f,0.0f,0.0f };
 
+
+	Sphere sphere{};
+	sphere.radius = 0.5f;
+
+	Plane plane{};
+
+
 	bool fige = false;
+
 
 	// キー入力結果を受け取る箱
 	char keys[256] = { 0 };
@@ -384,7 +421,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		Matrix4x4 ViewportMatrix = MakeViewportMatrix(0.0f, 0.0f, float(kWindowWidth), float(kWindowHeight), 0.0f, 1.0f);
 
 		// 球と球の当たり判定
-		if (IsCollision(sphere1, sphere2)) {
+		if (IsCollision(sphere,plane)) {
 			// 球同士が当たったら
 			fige = true;
 		} else {
@@ -393,10 +430,11 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		}
 
 		ImGui::Begin("Window");
-		ImGui::DragFloat3("sphere[1]", &sphere1.center.x, 0.01f);
-		ImGui::DragFloat("sphere[1]", &sphere1.radius, 0.01f);
-		ImGui::DragFloat3("sphere[2]", &sphere2.center.x, 0.01f);
-		ImGui::DragFloat("sphere[2]", &sphere2.radius, 0.01f);
+		ImGui::DragFloat3("sphere[1]", &sphere.center.x, 0.01f);
+		ImGui::DragFloat("sphere[1]", &sphere.radius, 0.01f);
+		ImGui::DragFloat3("Plane.Normal", &plane.normal.x, 0.01f);
+
+		plane.normal = Normalize(plane.normal);
 
 		///
 		/// ↑更新処理ここまで
@@ -408,13 +446,13 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 		DrawGrid(ViewProjectionMatrix, ViewportMatrix);
 
+		DrawPlane(plane, ViewProjectionMatrix, ViewportMatrix, WHITE);
 
 		if (fige == true) {
-			DrawSphere(sphere1, ViewProjectionMatrix, ViewportMatrix, RED);
-			DrawSphere(sphere2, ViewProjectionMatrix, ViewportMatrix, RED);
+			DrawSphere(sphere, ViewProjectionMatrix, ViewportMatrix, RED);	
 		} else if (fige == false) {
-			DrawSphere(sphere1, ViewProjectionMatrix, ViewportMatrix, GREEN);
-			DrawSphere(sphere2, ViewProjectionMatrix, ViewportMatrix, GREEN);
+			DrawSphere(sphere, ViewProjectionMatrix, ViewportMatrix, WHITE);
+	
 		}
 
 		ImGui::End();
