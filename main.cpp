@@ -65,6 +65,7 @@ bool  IsCollision(const Segment& segment, const Plane& plane) {
 	}
 
 	// 平面と線分の始点から平面までの距離を計算
+
 	float t = -(Dot(segment.origin, plane.normal) + plane.distance) / dot;
 
 	// tの値が0から1の間にある場合、線分は平面と交差している
