@@ -55,18 +55,21 @@ float Length(const Vector3& v) {
 // 線と平面の衝突判定
 bool  IsCollision(const Segment& segment, const Plane& plane) {
 
+
 	// 垂直判定を行うために、法線と線分の方向ベクトルの内積を求める
 	float dot = Dot(plane.normal, segment.diff);
 
 	// 線分が平面に平行（垂直）である場合は衝突しない
-	if (fabs(dot) < 1e-5f) {
+	if (fabs(dot) == 0.0f) {
 		return false;
 	}
 
 	// 平面と線分の始点から平面までの距離を計算
 	float t = -(Dot(segment.origin, plane.normal) + plane.distance) / dot;
 
-	return t >= -1.0f && t <= 2.0f;	
+	// tの値が0から1の間にある場合、線分は平面と交差している
+	return (t >= 0.0f && t <= 1.0f);
+
 }
 
 
