@@ -4,6 +4,8 @@
 #define _USE_MATH_DEFINES
 #include <math.h>
 #include<imgui.h>
+#include<Vector3.h>
+#include<Matrix4x4.h>
 
 static const int KRowHeight = 20;
 static const int Kcolumnwidth = 60;
@@ -13,23 +15,19 @@ static const int kWindowHeight = 720;
 
 const char kWindowTitle[] = "LE2B_05_オノデラ_ユヅキ_タイトル";
 
-struct Vector3 {
-	float x, y, z;
-};
-
-struct Matrix4x4 {
-	float m[4][4];
-};
-
-
 struct Sphere {
 	Vector3 center; //!< 中心点
 	float radius; //!< 半径
 };
 
-struct  Plane{
+struct  Plane {
 	Vector3 normal; //!< 法線
 	float distance; //!< 距離
+};
+
+struct Segment {
+	Vector3 origin; //!< 始点 
+	Vector3 diff;   //!< 終点への差分ベクトル
 };
 
 //加算
@@ -40,7 +38,6 @@ Vector3 Add(const Vector3& v1, const Vector3& v2) {
 	result.z = (v1.z + v2.z);
 	return result;
 };
-
 
 // 内積
 float Dot(const Vector3& v1, const Vector3& v2) {
@@ -53,12 +50,23 @@ float Length(const Vector3& v) {
 };
 
 
-// 球と平面の当たり判定
-bool  IsCollision(const Sphere& sphere, const Plane& plane) {
-	// 球の中心と平面の距離を計算
-	float distance = Dot(plane.normal, sphere.center) + plane.distance;
-	// 距離の絶対値が球の半径以下であれば衝突
-	return std::abs(distance) <= sphere.radius;
+
+
+// 線と平面の衝突判定
+bool  IsCollision(const Segment& segment, const Plane& plane) {
+
+	// 垂直判定を行うために、法線と線分の方向ベクトルの内積を求める
+	float dot = Dot(plane.normal, segment.diff);
+
+	// 線分が平面に平行（垂直）である場合は衝突しない
+	if (fabs(dot) < 1e-5f) {
+		return false;
+	}
+
+	// 平面と線分の始点から平面までの距離を計算
+	float t = -(Dot(segment.origin, plane.normal) + plane.distance) / dot;
+
+	return t >= -1.0f && t <= 2.0f;	
 }
 
 
@@ -279,63 +287,6 @@ void DrawGrid(const Matrix4x4& viewProiectionMatrix, const Matrix4x4& ViewportMa
 
 }
 
-static void DrawSphere(const Sphere& sphere, const Matrix4x4& viewProjectionMatrix, const Matrix4x4& viewportMatrix, uint32_t color)
-{
-	const uint32_t kSubdivision = 20;							//分割数
-	const float kLatStep = (float)M_PI / kSubdivision;			//緯度のステップ
-	const float kLonStep = 2.0f * (float)M_PI / kSubdivision;	//経度のステップ
-
-	// 緯度のループ
-	for (uint32_t latIndex = 0; latIndex < kSubdivision; ++latIndex)
-	{
-		float lat = -0.5f * (float)M_PI + latIndex * kLatStep;	//現在の緯度
-
-		//次の緯度
-		float nextLat = lat + kLatStep;
-
-		//経度のループ
-		for (uint32_t lonIndex = 0; lonIndex < kSubdivision; ++lonIndex)
-		{
-			//現在の経度
-			float lon = lonIndex * kLonStep;
-
-			//次の経度
-			float nextLon = lon + kLonStep;
-
-			// 球面座標の計算
-			Vector3 pointA
-			{
-				sphere.center.x + sphere.radius * cos(lat) * cos(lon),
-				sphere.center.y + sphere.radius * sin(lat),
-				sphere.center.z + sphere.radius * cos(lat) * sin(lon)
-			};
-
-			Vector3 pointB
-			{
-				sphere.center.x + sphere.radius * cos(nextLat) * cos(lon),
-				sphere.center.y + sphere.radius * sin(nextLat),
-				sphere.center.z + sphere.radius * cos(nextLat) * sin(lon)
-			};
-
-			Vector3 pointC
-			{
-				sphere.center.x + sphere.radius * cos(lat) * cos(nextLon),
-				sphere.center.y + sphere.radius * sin(lat),
-				sphere.center.z + sphere.radius * cos(lat) * sin(nextLon)
-			};
-
-			// スクリーン座標に変換
-			pointA = Transform(pointA, Multiply(viewProjectionMatrix, viewportMatrix));
-			pointB = Transform(pointB, Multiply(viewProjectionMatrix, viewportMatrix));
-			pointC = Transform(pointC, Multiply(viewProjectionMatrix, viewportMatrix));
-
-			// 線分の描画
-			Novice::DrawLine((int)pointA.x, (int)pointA.y, (int)pointB.x, (int)pointB.y, color);
-			Novice::DrawLine((int)pointA.x, (int)pointA.y, (int)pointC.x, (int)pointC.y, color);
-		}
-	}
-}
-
 Vector3 Project(const Vector3& v1, const Vector3& v2) {
 	return (Dot(v1, v2) / powf(Length(v2), 2), v2);
 };
@@ -347,22 +298,21 @@ Vector3 Perpendicular(const Vector3& vector) {
 	return { 0.0f,-vector.z,vector.y };
 }
 
-
 Vector3 MultiPly(float scalar, const Vector3& vector) {
 	return { scalar * vector.x, scalar * vector.y, scalar * vector.z };
 }
 
-void DrawPlane(const Plane& plane,const Matrix4x4& viewProjectionMatrix,const Matrix4x4& ViewportMatrix,uint32_t color){
-		
+void DrawPlane(const Plane& plane, const Matrix4x4& viewProjectionMatrix, const Matrix4x4& ViewportMatrix, uint32_t color) {
+
 	Vector3 center = MultiPly(plane.distance, plane.normal);
 
 	// 平面の4つの頂点を計算
 	Vector3 Perpendiculars[4];
-	Perpendiculars[0] = Normalize(Perpendicular(plane.normal));	
-	Perpendiculars[1] = {-Perpendiculars[0].x,-Perpendiculars[0].y,-Perpendiculars[0].z};
+	Perpendiculars[0] = Normalize(Perpendicular(plane.normal));
+	Perpendiculars[1] = { -Perpendiculars[0].x,-Perpendiculars[0].y,-Perpendiculars[0].z };
 	Perpendiculars[2] = Cross(plane.normal, Perpendiculars[0]);
 	Perpendiculars[3] = { -Perpendiculars[2].x,-Perpendiculars[2].y,-Perpendiculars[2].z };
-		
+
 	Vector3 points[4];
 	// ビュープロジェクション行列とビューポート行列で各頂点を変換
 	for (uint32_t index = 0; index < 4; ++index) {
@@ -389,15 +339,16 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	Vector3 cameraRotate = { 0.26f,0.0f,0.0f };
 
 
-	Sphere sphere{};
-	sphere.radius = 0.5f;
+
+	Segment segment{};
+	segment.diff.x = 1.2f;
+	segment.diff.y = 0.5f;
 
 	Plane plane{};
-	plane.normal = { 0.5f,0.5f,0.5f };
+	plane.normal = { 0.0f,1.0f,0.0f };
 	plane.distance = 1.0f;
 
 	bool fige = false;
-
 
 	// キー入力結果を受け取る箱
 	char keys[256] = { 0 };
@@ -425,19 +376,22 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		Matrix4x4 projectionMatrix = MakePerspectiveFovMatrix(0.45f, float(kWindowWidth) / float(kWindowHeight), 0.1f, 100.0f);
 		Matrix4x4 ViewProjectionMatrix = Multiply(viewWorldMatrix, Multiply(viewCameraMatrix, projectionMatrix));
 		Matrix4x4 ViewportMatrix = MakeViewportMatrix(0.0f, 0.0f, float(kWindowWidth), float(kWindowHeight), 0.0f, 1.0f);
-
-		// 球と球の当たり判定
-		if (IsCollision(sphere,plane)) {
-			// 球同士が当たったら
+		
+		Vector3 start = Transform(Transform(segment.origin, ViewProjectionMatrix), ViewportMatrix);
+		Vector3 end = Transform(Transform(Add(segment.origin, segment.diff), ViewProjectionMatrix), ViewportMatrix);
+		
+		// 線と面の衝突判定
+		if (IsCollision(segment, plane)) {
+			// 衝突したら
 			fige = true;
 		} else {
-			// 球同士が当たらなかったら
+			// 衝突しなかったら
 			fige = false;
 		}
 
 		ImGui::Begin("Window");
-		ImGui::DragFloat3("sphere", &sphere.center.x, 0.01f);
-		ImGui::DragFloat("sphere", &sphere.radius, 0.01f);
+		ImGui::DragFloat3("segment.segment", &segment.origin.x, 0.01f);
+		ImGui::DragFloat3("segment.diff", &segment.diff.x, 0.01f);
 		ImGui::DragFloat3("Plane.Normal", &plane.normal.x, 0.01f);
 		ImGui::DragFloat("Plane.distance", &plane.distance, 0.01f);
 
@@ -456,10 +410,12 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		DrawPlane(plane, ViewProjectionMatrix, ViewportMatrix, WHITE);
 
 		if (fige == true) {
-			DrawSphere(sphere, ViewProjectionMatrix, ViewportMatrix, RED);	
+			Novice::DrawLine((int)start.x, (int)start.y, (int)end.x, (int)end.y, RED);
+
 		} else if (fige == false) {
-			DrawSphere(sphere, ViewProjectionMatrix, ViewportMatrix, WHITE);
-	
+			Novice::DrawLine((int)start.x, (int)start.y, (int)end.x, (int)end.y, WHITE);
+
+
 		}
 
 		ImGui::End();
