@@ -50,8 +50,6 @@ float Length(const Vector3& v) {
 };
 
 
-
-
 // 線と平面の衝突判定
 bool  IsCollision(const Segment& segment, const Plane& plane) {
 
