@@ -347,30 +347,35 @@ Vector3 Perpendicular(const Vector3& vector) {
 	return { 0.0f,-vector.z,vector.y };
 }
 
-static Vector3 ToVector3(Matrix4x4 m){
-	return  Vector3(m.m[0][3], m.m[1][3], m.m[2][3]);
+
+Vector3 MultiPly(float scalar, const Vector3& vector) {
+	return { scalar * vector.x, scalar * vector.y, scalar * vector.z };
 }
 
 void DrawPlane(const Plane& plane,const Matrix4x4& viewProjectionMatrix,const Matrix4x4& ViewportMatrix,uint32_t color){
 		
-	Perpendicular(plane.normal);
+	Vector3 center = MultiPly(plane.distance, plane.normal);
 
-	Vector3 center = ToVector3(Multiply(plane.distance,plane.normal));// 1
-	Vector3 perpendiculars[4];
-	perpendiculars[0] = Normalize(Perpendicular(plane.normal));// 2
-	perpendiculars[1] = {-perpendiculars[0].x,-perpendiculars[0].y ,-perpendiculars[0].z};// 3
-	perpendiculars[2] = Cross(plane.normal,perpendiculars[0]);// 4
-	perpendiculars[3] = { -perpendiculars[2].x,-perpendiculars[2].y ,-perpendiculars[2].z };// 5
-	// 6
+	// 平面の4つの頂点を計算
+	Vector3 Perpendiculars[4];
+	Perpendiculars[0] = Normalize(Perpendicular(plane.normal));	
+	Perpendiculars[1] = {-Perpendiculars[0].x,-Perpendiculars[0].y,-Perpendiculars[0].z};
+	Perpendiculars[2] = Cross(plane.normal, Perpendiculars[0]);
+	Perpendiculars[3] = { -Perpendiculars[2].x,-Perpendiculars[2].y,-Perpendiculars[2].z };
+		
 	Vector3 points[4];
+	// ビュープロジェクション行列とビューポート行列で各頂点を変換
 	for (uint32_t index = 0; index < 4; ++index) {
-		Vector3 extend = Multiply(2.0f, perpendiculars[index]);
-		Vector3 point = Add(center,extend);
-		point[index] = Transform(Transform(point, viewProjectionMatrix), ViewportMatrix);
+		Vector3 extend = MultiPly(2.0f, Perpendiculars[index]);
+		Vector3 point = Add(center, extend);
+		points[index] = Transform(Transform(point, viewProjectionMatrix), ViewportMatrix);
 	}
 
-	Novice::DrawLine(int(points[0].x), int(points[0].y), int(points[1].x), int(points[1].y),WHITE);
-	Novice::DrawLine(int(points[1].x), int(points[1].y), int(points[2].x), int(points[2].y), WHITE);
+	// 平面の線を描画
+	Novice::DrawLine(int(points[0].x), int(points[0].y), int(points[2].x), int(points[2].y), color);
+	Novice::DrawLine(int(points[2].x), int(points[2].y), int(points[1].x), int(points[1].y), color);
+	Novice::DrawLine(int(points[1].x), int(points[1].y), int(points[3].x), int(points[3].y), color);
+	Novice::DrawLine(int(points[3].x), int(points[3].y), int(points[0].x), int(points[0].y), color);
 }
 
 
@@ -388,7 +393,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	sphere.radius = 0.5f;
 
 	Plane plane{};
-
+	plane.normal = { 0.5f,0.5f,0.5f };
+	plane.distance = 1.0f;
 
 	bool fige = false;
 
@@ -430,9 +436,10 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		}
 
 		ImGui::Begin("Window");
-		ImGui::DragFloat3("sphere[1]", &sphere.center.x, 0.01f);
-		ImGui::DragFloat("sphere[1]", &sphere.radius, 0.01f);
+		ImGui::DragFloat3("sphere", &sphere.center.x, 0.01f);
+		ImGui::DragFloat("sphere", &sphere.radius, 0.01f);
 		ImGui::DragFloat3("Plane.Normal", &plane.normal.x, 0.01f);
+		ImGui::DragFloat("Plane.distance", &plane.distance, 0.01f);
 
 		plane.normal = Normalize(plane.normal);
 
