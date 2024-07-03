@@ -369,6 +369,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		memcpy(preKeys, keys, 256);
 		Novice::GetHitKeyStateAll(keys);
 
+
 		///
 		/// ↓更新処理ここから
 		///
@@ -411,10 +412,10 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 		if (fige == true) {
 			DrawSphere(sphere1, ViewProjectionMatrix, ViewportMatrix, RED);
-			DrawSphere(sphere2, ViewProjectionMatrix, ViewportMatrix, RED);
+			DrawSphere(sphere2, ViewProjectionMatrix, ViewportMatrix, WHITE);
 		} else if (fige == false) {
-			DrawSphere(sphere1, ViewProjectionMatrix, ViewportMatrix, GREEN);
-			DrawSphere(sphere2, ViewProjectionMatrix, ViewportMatrix, GREEN);
+			DrawSphere(sphere1, ViewProjectionMatrix, ViewportMatrix, WHITE);
+			DrawSphere(sphere2, ViewProjectionMatrix, ViewportMatrix, WHITE);
 		}
 
 		ImGui::End();
