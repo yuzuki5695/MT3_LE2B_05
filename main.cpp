@@ -47,14 +47,6 @@ float Length(const Vector3& v) {
 	return sqrtf(powf(v.x, 2) + powf(v.y, 2) + powf(v.z, 2));
 };
 
-// 球と球の当たり判定
-bool  IsCollision(const Sphere& sphere1, const Sphere& sphere2) {
-	float distance = Length(Add(sphere2.center, Vector3{ -sphere1.center.x, -sphere1.center.y, -sphere1.center.z }));
-	// 半径の合計よりも短ければ衝突
-	return distance <= (sphere1.radius + sphere2.radius);
-}
-
-
 //正規化
 Vector3  Normalize(const Vector3& v) {
 	Vector3 result{};
@@ -259,7 +251,11 @@ void DrawGrid(const Matrix4x4& viewProiectionMatrix, const Matrix4x4& ViewportMa
 
 		startPointX = Transform(startPointX, Multiply(viewProiectionMatrix, ViewportMatrix));
 		endPointX = Transform(endPointX, Multiply(viewProiectionMatrix, ViewportMatrix));
-		Novice::DrawLine((int)startPointX.x, (int)startPointX.y, (int)endPointX.x, (int)endPointX.y, 0x6F6F6FFF);
+		if (xIndex == 5) {
+			Novice::DrawLine((int)startPointX.x, (int)startPointX.y, (int)endPointX.x, (int)endPointX.y, BLACK);
+		} else {
+			Novice::DrawLine((int)startPointX.x, (int)startPointX.y, (int)endPointX.x, (int)endPointX.y, 0x6F6F6FFF);
+		}
 	}
 	for (uint32_t zIndex = 0; zIndex <= KSubdivision; zIndex++) {
 		float posZ = -KGridHalfwidth + KGridEvery * zIndex;
@@ -268,14 +264,18 @@ void DrawGrid(const Matrix4x4& viewProiectionMatrix, const Matrix4x4& ViewportMa
 		Vector3 endPointZ = { KGridHalfwidth, 0.0f, posZ };
 		startPointZ = Transform(startPointZ, Multiply(viewProiectionMatrix, ViewportMatrix));
 		endPointZ = Transform(endPointZ, Multiply(viewProiectionMatrix, ViewportMatrix));
-		Novice::DrawLine((int)startPointZ.x, (int)startPointZ.y, (int)endPointZ.x, (int)endPointZ.y, 0x6F6F6FFF);
+		if (zIndex == 5) {
+			Novice::DrawLine((int)startPointZ.x, (int)startPointZ.y, (int)endPointZ.x, (int)endPointZ.y, BLACK);
+		} else {
+			Novice::DrawLine((int)startPointZ.x, (int)startPointZ.y, (int)endPointZ.x, (int)endPointZ.y, 0x6F6F6FFF);
+		}
 	}
 
 }
 
 static void DrawSphere(const Sphere& sphere, const Matrix4x4& viewProjectionMatrix, const Matrix4x4& viewportMatrix, uint32_t color)
 {
-	const uint32_t kSubdivision = 20;							//分割数
+	const uint32_t kSubdivision = 12;							//分割数
 	const float kLatStep = (float)M_PI / kSubdivision;			//緯度のステップ
 	const float kLonStep = 2.0f * (float)M_PI / kSubdivision;	//経度のステップ
 
@@ -343,18 +343,13 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 	Vector3 point{ -1.5f,0.6f,0.6f };
 
-	Sphere sphere1{};
-	Sphere sphere2{};
-	sphere1.radius = 0.5f;
-	sphere2.radius = 0.3f;
-	sphere2.center.x = 1.0f;
+	Sphere sphere{};
+	sphere.radius = 0.5f;
 	Vector3 rotate = {};
 	Vector3 translate = {};
 
 	Vector3 camaraTranslate = { 0.0f,1.9f,-6.49f };
 	Vector3 cameraRotate = { 0.26f,0.0f,0.0f };
-
-	bool fige = false;
 
 	// キー入力結果を受け取る箱
 	char keys[256] = { 0 };
@@ -384,20 +379,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		Matrix4x4 ViewProjectionMatrix = Multiply(viewWorldMatrix, Multiply(viewCameraMatrix, projectionMatrix));
 		Matrix4x4 ViewportMatrix = MakeViewportMatrix(0.0f, 0.0f, float(kWindowWidth), float(kWindowHeight), 0.0f, 1.0f);
 
-		// 球と球の当たり判定
-		if (IsCollision(sphere1, sphere2)) {
-			// 球同士が当たったら
-			fige = true;
-		} else {
-			// 球同士が当たらなかったら
-			fige = false;
-		}
-
 		ImGui::Begin("Window");
-		ImGui::DragFloat3("sphere[1]", &sphere1.center.x, 0.01f);
-		ImGui::DragFloat("sphere[1]", &sphere1.radius, 0.01f);
-		ImGui::DragFloat3("sphere[2]", &sphere2.center.x, 0.01f);
-		ImGui::DragFloat("sphere[2]", &sphere2.radius, 0.01f);
+		ImGui::DragFloat3("sphere", &sphere.center.x, 0.01f);
+		ImGui::DragFloat("sphere", &sphere.radius, 0.01f);
 
 		///
 		/// ↑更新処理ここまで
@@ -408,15 +392,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		///
 
 		DrawGrid(ViewProjectionMatrix, ViewportMatrix);
+		DrawSphere(sphere, ViewProjectionMatrix, ViewportMatrix, BLACK);
 
-
-		if (fige == true) {
-			DrawSphere(sphere1, ViewProjectionMatrix, ViewportMatrix, RED);	
-			DrawSphere(sphere2, ViewProjectionMatrix, ViewportMatrix, WHITE);
-		} else if (fige == false) {
-			DrawSphere(sphere1, ViewProjectionMatrix, ViewportMatrix, WHITE);
-			DrawSphere(sphere2, ViewProjectionMatrix, ViewportMatrix, WHITE);
-		}
 
 		ImGui::End();
 
