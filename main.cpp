@@ -53,15 +53,6 @@ float Length(const Vector3& v) {
 };
 
 
-// 球と平面の当たり判定
-bool  IsCollision(const Sphere& sphere, const Plane& plane) {
-	// 球の中心と平面の距離を計算
-	float distance = Dot(plane.normal, sphere.center) + plane.distance;
-	// 距離の絶対値が球の半径以下であれば衝突
-	return std::abs(distance) <= sphere.radius;
-}
-
-
 //正規化
 Vector3  Normalize(const Vector3& v) {
 	Vector3 result{};
@@ -281,7 +272,7 @@ void DrawGrid(const Matrix4x4& viewProiectionMatrix, const Matrix4x4& ViewportMa
 
 static void DrawSphere(const Sphere& sphere, const Matrix4x4& viewProjectionMatrix, const Matrix4x4& viewportMatrix, uint32_t color)
 {
-	const uint32_t kSubdivision = 20;							//分割数
+	const uint32_t kSubdivision = 12;							//分割数
 	const float kLatStep = (float)M_PI / kSubdivision;			//緯度のステップ
 	const float kLonStep = 2.0f * (float)M_PI / kSubdivision;	//経度のステップ
 
@@ -378,6 +369,14 @@ void DrawPlane(const Plane& plane,const Matrix4x4& viewProjectionMatrix,const Ma
 	Novice::DrawLine(int(points[3].x), int(points[3].y), int(points[0].x), int(points[0].y), color);
 }
 
+// 球と平面の当たり判定
+bool  IsCollision(const Sphere& sphere, const Plane& plane) {
+	Vector3 normalizedNormal = Normalize(plane.normal);
+	// 球の中心と平面の距離を計算
+	float distance =  Dot(normalizedNormal, sphere.center) - plane.distance;
+	// 距離の絶対値が球の半径以下であれば衝突
+	return std::abs(distance) <= sphere.radius;
+}
 
 // Windowsアプリでのエントリーポイント(main関数)
 int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
