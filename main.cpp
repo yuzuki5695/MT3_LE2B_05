@@ -14,33 +14,6 @@ static const int kWindowHeight = 720;
 
 const char kWindowTitle[] = "LE2B_05_オノデラ_ユヅキ_タイトル";
 
-struct Sphere {
-	Vector3 center; //!< 中心点
-	float radius; //!< 半径
-};
-
-struct  Plane {
-	Vector3 normal; //!< 法線
-	float distance; //!< 距離
-};
-
-struct Segment {
-	Vector3 origin; //!< 始点 
-	Vector3 diff;   //!< 終点への差分ベクトル
-};
-
-
-Vector3 Project(const Vector3& v1, const Vector3& v2) {
-	return (Dot(v1, v2) / powf(Length(v2), 2), v2);
-};
-
-Vector3 Perpendicular(const Vector3& vector) {
-	if (vector.x != 0.0f || vector.y != 0.0f) {
-		return { -vector.y,vector.x,0.0f };
-	}
-	return { 0.0f,-vector.z,vector.y };
-}
-
 
 // Windowsアプリでのエントリーポイント(main関数)
 int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {

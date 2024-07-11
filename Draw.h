@@ -1,6 +1,34 @@
 ﻿#pragma once
 #include<Matrix.h>
 
+struct Sphere {
+	Vector3 center; //!< 中心点
+	float radius; //!< 半径
+};
+
+struct  Plane {
+	Vector3 normal; //!< 法線
+	float distance; //!< 距離
+};
+
+struct Segment {
+	Vector3 origin; //!< 始点 
+	Vector3 diff;   //!< 終点への差分ベクトル
+};
+
+Vector3 Project(const Vector3& v1, const Vector3& v2) {
+	return (Dot(v1, v2) / powf(Length(v2), 2), v2);
+};
+
+Vector3 Perpendicular(const Vector3& vector) {
+	if (vector.x != 0.0f || vector.y != 0.0f) {
+		return { -vector.y,vector.x,0.0f };
+	}
+	return { 0.0f,-vector.z,vector.y };
+}
+
+
+
 void DrawGrid(const Matrix4x4& viewProiectionMatrix, const Matrix4x4& ViewportMatrix) {
 	const float KGridHalfwidth = 2.0f;
 	const uint32_t KSubdivision = 10;
@@ -67,13 +95,13 @@ bool  IsCollision(const Segment& segment, const Plane& plane) {
 	float dot = Dot(plane.normal, segment.diff);
 
 	// 線分が平面に平行（垂直）である場合は衝突しない
-	if (fabs(dot) == 0.0f) {
+	if (dot == 0.0f) {
 		return false;
 	}
 
 	// 平面と線分の始点から平面までの距離を計算
 
-	float t = -(Dot(segment.origin, plane.normal) + plane.distance) / dot;
+	float t = (plane.distance - Dot(segment.origin, plane.normal)) / dot;
 
 	// tの値が0から1の間にある場合、線分は平面と交差している
 	return (t >= 0.0f && t <= 1.0f);
