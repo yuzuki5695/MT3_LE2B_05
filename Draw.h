@@ -16,6 +16,11 @@ struct Segment {
 	Vector3 diff;   //!< 終点への差分ベクトル
 };
 
+struct Triangle {
+	Vector3 vertices[3]; //!< 頂点
+};
+
+
 Vector3 Project(const Vector3& v1, const Vector3& v2) {
 	return (Dot(v1, v2) / powf(Length(v2), 2), v2);
 };
@@ -61,13 +66,13 @@ void DrawGrid(const Matrix4x4& viewProiectionMatrix, const Matrix4x4& ViewportMa
 	}
 
 }
-Vector3 MultiPly(float scalar, const Vector3& vector) {
+Vector3 Multiply(float scalar, const Vector3& vector) {
 	return { scalar * vector.x, scalar * vector.y, scalar * vector.z };
 }
 
 void DrawPlane(const Plane& plane, const Matrix4x4& viewProjectionMatrix, const Matrix4x4& ViewportMatrix, uint32_t color) {
 
-	Vector3 center = MultiPly(plane.distance, plane.normal);
+	Vector3 center = Multiply(plane.distance, plane.normal);
 
 	// 平面の4つの頂点を計算
 	Vector3 Perpendiculars[4];
@@ -79,7 +84,7 @@ void DrawPlane(const Plane& plane, const Matrix4x4& viewProjectionMatrix, const 
 	Vector3 points[4];
 	// ビュープロジェクション行列とビューポート行列で各頂点を変換
 	for (uint32_t index = 0; index < 4; ++index) {
-		Vector3 extend = MultiPly(2.0f, Perpendiculars[index]);
+		Vector3 extend = Multiply(2.0f, Perpendiculars[index]);
 		Vector3 point = Add(center, extend);
 		points[index] = Transform(Transform(point, viewProjectionMatrix), ViewportMatrix);
 	}
@@ -93,24 +98,9 @@ void DrawPlane(const Plane& plane, const Matrix4x4& viewProjectionMatrix, const 
 
 
 
-// 線と平面の衝突判定
-bool  IsCollision(const Segment& segment, const Plane& plane) {
+// 線と三角形の衝突判定
+bool  IsCollision(const Triangle& triangle, const Segment& segment) {
 
-
-	// 垂直判定を行うために、法線と線分の方向ベクトルの内積を求める
-	float dot = Dot(plane.normal, segment.diff);
-
-	// 線分が平面に平行（垂直）である場合は衝突しない
-	if (dot == 0.0f) {
-		return false;
-	}
-
-	// 平面と線分の始点から平面までの距離を計算
-
-	float t = (plane.distance - Dot(segment.origin, plane.normal)) / dot;
-
-	// tの値が0から1の間にある場合、線分は平面と交差している
-	return (t >= 0.0f && t <= 1.0f);
 
 }
 
