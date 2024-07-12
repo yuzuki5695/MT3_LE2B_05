@@ -1,4 +1,5 @@
 ﻿#pragma once
+#include<Vector2.h>
 #include<Vector3.h>
 #include<Matrix4x4.h>
 
@@ -212,3 +213,11 @@ Matrix4x4 MakeViewportMatrix(float left, float top, float  width, float height, 
 	result.m[3][0] = left + (width / 2); result.m[3][1] = top + (height / 2.0f); result.m[3][2] = minDepth; result.m[3][3] = 1.0f;
 	return result;
 };
+
+
+// 3次元ベクトルを2次元ベクトルに変換する関数
+Vector2 ProjectTo2D(const Vector3& v, const Matrix4x4& viewportMatrix) {
+	float x = v.x * viewportMatrix.m[0][0] + v.y * viewportMatrix.m[1][0] + v.z * viewportMatrix.m[2][0] + viewportMatrix.m[3][0];
+	float y = v.x * viewportMatrix.m[0][1] + v.y * viewportMatrix.m[1][1] + v.z * viewportMatrix.m[2][1] + viewportMatrix.m[3][1];
+	return { x, y };
+}
