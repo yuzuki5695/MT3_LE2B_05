@@ -25,11 +25,11 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 	AABB aabb;
 	aabb.min = { -0.5f,-0.5f,-0.5f };
-	aabb.max = { 0.0f,0.0f,0.0f };
+	aabb.max = { 0.5f,0.5f,0.5f };
 
 	Segment segment{};
-	segment.diff.x = 1.2f;
-	segment.diff.y = 0.5f;
+	segment.origin ={ -0.7f,0.3f,0.0f};
+
 
 	bool fige = false;
 
@@ -51,6 +51,18 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		///
 		/// 
 
+		if (keys[DIK_D]) {
+			camaraTranslate.x += 0.01f;
+		}
+		if (keys[DIK_E]) {
+			camaraTranslate.y += 0.01f;
+		}
+		if (keys[DIK_Q]) {
+			camaraTranslate.z += 0.01f;
+		}
+		if (keys[DIK_W]) {
+			cameraRotate.y -= 0.01f;
+		}
 		Matrix4x4 worldMatrix = MakeAffineMatrix({ 1.0f,1.0f,1.0f }, { 0.0f,0.0f,0.0f }, { 0.0f,0.0f,0.0f });
 		Matrix4x4 viewWorldMatrix = Inverse(worldMatrix);
 

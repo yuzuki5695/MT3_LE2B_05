@@ -130,20 +130,21 @@ bool  IsCollision(const AABB& aabb, const Segment& segment) {
 	float invDirY = 1.0f / segmentDir.y;
 	float invDirZ = 1.0f / segmentDir.z;
 
-	// AABBの最小面と最大面で線分のパラメータ t の範囲を求める
-	float t1 = (aabbMin.x - segmentOrig.x) * invDirX;
-	float t2 = (aabbMax.x - segmentOrig.x) * invDirX;
-	float t3 = (aabbMin.y - segmentOrig.y) * invDirY;
-	float t4 = (aabbMax.y - segmentOrig.y) * invDirY;
-	float t5 = (aabbMin.z - segmentOrig.z) * invDirZ;
-	float t6 = (aabbMax.z - segmentOrig.z) * invDirZ;
+	// 各軸でのt値
+	float tminX = min((aabbMin.x - segmentOrig.x) * invDirX, (aabbMax.x - segmentOrig.x) * invDirX);
+	float tminY = min((aabbMin.y - segmentOrig.y) * invDirY, (aabbMax.y - segmentOrig.y) * invDirY);
+	float tminZ = min((aabbMin.z - segmentOrig.z) * invDirZ, (aabbMax.z - segmentOrig.z) * invDirZ);
 
-	// t の範囲を計算
-	float tmin = std::max(std::max(std::min(t1, t2), std::min(t3, t4)), std::min(t5, t6));
-	float tmax = std::min(std::min(std::max(t1, t2), std::max(t3, t4)), std::max(t5, t6));
+	float tmaxX = max((aabbMin.x - segmentOrig.x) * invDirX, (aabbMax.x - segmentOrig.x) * invDirX);
+	float tmaxY = max((aabbMin.y - segmentOrig.y) * invDirY, (aabbMax.y - segmentOrig.y) * invDirY);
+	float tmaxZ = max((aabbMin.z - segmentOrig.z) * invDirZ, (aabbMax.z - segmentOrig.z) * invDirZ);
+
+	//tの範囲
+	float tmin = max(max(tminX, tminY), tminZ);
+	float tmax = min(min(tmaxX, tmaxY), tmaxZ);
 
 	// 線分がAABBに交差するかどうかを判断
-	if (tmax >= std::max(0.0f, tmin)) {
+	if (tmax >= max(0.0f, tmin)) {
 		return true;
 	}
 
