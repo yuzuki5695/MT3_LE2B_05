@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include<Matrix.h>
+#include<algorithm>
 
 struct Sphere {
 	Vector3 center; //!< 中心点
@@ -114,15 +115,82 @@ void DrawAABB(const AABB& aabb, const Matrix4x4& viewProiectionMatrix, const Mat
 }
 
 
-// AABB同士の衝突判定
-bool  IsCollision(const AABB& aabb1, const  AABB& aabb2) {
+static void DrawSphere(const Sphere& sphere, const Matrix4x4& viewProjectionMatrix, const Matrix4x4& viewportMatrix, uint32_t color)
+{
+	const uint32_t kSubdivision = 12;							//分割数
+	const float kLatStep = (float)M_PI / kSubdivision;			//緯度のステップ
+	const float kLonStep = 2.0f * (float)M_PI / kSubdivision;	//経度のステップ
 
-	if ( (aabb1.min.x <= aabb2.max.x && aabb1.max.x >= aabb2.min.x) &&  // X
-	 	 (aabb1.min.y <= aabb2.max.y && aabb1.max.y >= aabb2.min.y) && // Y
-		 (aabb1.min.z <= aabb2.max.z && aabb1.max.z >= aabb2.min.z)    // Z 
-		) {
-		return true;
+	// 緯度のループ
+	for (uint32_t latIndex = 0; latIndex < kSubdivision; ++latIndex)
+	{
+		float lat = -0.5f * (float)M_PI + latIndex * kLatStep;	//現在の緯度
+
+		//次の緯度
+		float nextLat = lat + kLatStep;
+
+		//経度のループ
+		for (uint32_t lonIndex = 0; lonIndex < kSubdivision; ++lonIndex)
+		{
+			//現在の経度
+			float lon = lonIndex * kLonStep;
+
+			//次の経度
+			float nextLon = lon + kLonStep;
+
+			// 球面座標の計算
+			Vector3 pointA
+			{
+				sphere.center.x + sphere.radius * cos(lat) * cos(lon),
+				sphere.center.y + sphere.radius * sin(lat),
+				sphere.center.z + sphere.radius * cos(lat) * sin(lon)
+			};
+
+			Vector3 pointB
+			{
+				sphere.center.x + sphere.radius * cos(nextLat) * cos(lon),
+				sphere.center.y + sphere.radius * sin(nextLat),
+				sphere.center.z + sphere.radius * cos(nextLat) * sin(lon)
+			};
+
+			Vector3 pointC
+			{
+				sphere.center.x + sphere.radius * cos(lat) * cos(nextLon),
+				sphere.center.y + sphere.radius * sin(lat),
+				sphere.center.z + sphere.radius * cos(lat) * sin(nextLon)
+			};
+
+			// スクリーン座標に変換
+			pointA = Transform(pointA, Multiply(viewProjectionMatrix, viewportMatrix));
+			pointB = Transform(pointB, Multiply(viewProjectionMatrix, viewportMatrix));
+			pointC = Transform(pointC, Multiply(viewProjectionMatrix, viewportMatrix));
+
+			// 線分の描画
+			Novice::DrawLine((int)pointA.x, (int)pointA.y, (int)pointB.x, (int)pointB.y, color);
+			Novice::DrawLine((int)pointA.x, (int)pointA.y, (int)pointC.x, (int)pointC.y, color);
+		}
 	}
+}
+
+// AABBと球の衝突判定
+bool  IsCollision(const AABB& aabb, const  Sphere& sphere) {
+
+	Vector3 closestPoint = { 
+		std::clamp(sphere.center.x,aabb.min.x,aabb.max.x),
+		std::clamp(sphere.center.y,aabb.min.y,aabb.max.y),
+		std::clamp(sphere.center.z,aabb.min.z,aabb.max.z)
+	};
+
+	float pointLength =
+		closestPoint.x * sphere.center.x +
+		closestPoint.y * sphere.center.y +
+		closestPoint.z * sphere.center.z;
+
+	float distanceSquared = pointLength;
+
+	if (distanceSquared <= (sphere.radius * sphere.radius)) {
+		return true;
+	}	
 
 	return false;
 }

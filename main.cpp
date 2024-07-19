@@ -27,9 +27,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	aabb1.min = { -0.5f,-0.5f,-0.5f };
 	aabb1.max = { 0.0f,0.0f,0.0f };
 
-	AABB aabb2;
-	aabb2.min = { 0.2f,0.2f,0.2f };
-	aabb2.max = { 1.0f,1.0f,1.0f };
+	Sphere sphere;
+	sphere.radius = 0.5f;
 
 	bool fige = false;
 
@@ -63,7 +62,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		
 		
 		// 線と面の衝突判定
-		if (IsCollision(aabb1, aabb2)) {
+		if (IsCollision(aabb1, sphere)) {
 			// 衝突したら
 			fige = true;
 		} else {
@@ -74,8 +73,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		ImGui::Begin("Window");
 		ImGui::DragFloat3("AABB1.Min", &aabb1.min.x, 0.01f);
 		ImGui::DragFloat3("AABB1.Max", &aabb1.max.x, 0.01f);
-		ImGui::DragFloat3("AABB2.Min", &aabb2.min.x, 0.01f);
-		ImGui::DragFloat3("AABB2.Max", &aabb2.max.x, 0.01f);
+		ImGui::DragFloat3("Sphere.Center", &sphere.center.x, 0.01f);
+		ImGui::DragFloat("Sphere.Radius", &sphere.radius, 0.01f);
 		ImGui::Checkbox("fige",&fige);
 
 		///
@@ -94,7 +93,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			DrawAABB(aabb1, ViewProjectionMatrix, ViewportMatrix, WHITE);
 		}
 
-		DrawAABB(aabb2, ViewProjectionMatrix, ViewportMatrix, WHITE);
+		DrawSphere(sphere, ViewProjectionMatrix, ViewportMatrix, WHITE);
 
 		ImGui::End();
 
