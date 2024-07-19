@@ -175,18 +175,19 @@ static void DrawSphere(const Sphere& sphere, const Matrix4x4& viewProjectionMatr
 // AABBと球の衝突判定
 bool  IsCollision(const AABB& aabb, const  Sphere& sphere) {
 
+	// 球の中心に最も近いAABBの点を計算
 	Vector3 closestPoint = { 
 		std::clamp(sphere.center.x,aabb.min.x,aabb.max.x),
 		std::clamp(sphere.center.y,aabb.min.y,aabb.max.y),
 		std::clamp(sphere.center.z,aabb.min.z,aabb.max.z)
 	};
 
-	float pointLength =
-		closestPoint.x * sphere.center.x +
-		closestPoint.y * sphere.center.y +
-		closestPoint.z * sphere.center.z;
+	// 球の中心とこの点との距離を計算
+	float distanceX = sphere.center.x - closestPoint.x;
+	float distanceY = sphere.center.y - closestPoint.y;
+	float distanceZ = sphere.center.z - closestPoint.z;
 
-	float distanceSquared = pointLength;
+	float distanceSquared = distanceX * distanceX + distanceY * distanceY + distanceZ * distanceZ;
 
 	if (distanceSquared <= (sphere.radius * sphere.radius)) {
 		return true;

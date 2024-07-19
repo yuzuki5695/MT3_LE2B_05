@@ -27,7 +27,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	aabb1.min = { -0.5f,-0.5f,-0.5f };
 	aabb1.max = { 0.0f,0.0f,0.0f };
 
-	Sphere sphere;
+	Sphere sphere{};
+	sphere.center.x = 1.5f;
 	sphere.radius = 0.5f;
 
 	bool fige = false;
@@ -61,7 +62,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		Matrix4x4 ViewportMatrix = MakeViewportMatrix(0.0f, 0.0f, float(kWindowWidth), float(kWindowHeight), 0.0f, 1.0f);
 		
 		
-		// 線と面の衝突判定
+		// AABBと球の衝突判定
 		if (IsCollision(aabb1, sphere)) {
 			// 衝突したら
 			fige = true;
