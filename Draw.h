@@ -20,6 +20,10 @@ struct Triangle {
 	Vector3 vertices[3]; //!< 頂点
 };
 
+struct AABB {
+	Vector3 min; //!< 最小点
+	Vector3 max; //!< 最大点
+};
 
 Vector3 Project(const Vector3& v1, const Vector3& v2) {
 	return (Dot(v1, v2) / powf(Length(v2), 2), v2);
@@ -66,122 +70,57 @@ void DrawGrid(const Matrix4x4& viewProiectionMatrix, const Matrix4x4& ViewportMa
 	}
 
 }
-Vector3 Multiply(float scalar, const Vector3& vector) {
-	return { scalar * vector.x, scalar * vector.y, scalar * vector.z };
-}
 
-void DrawPlane(const Plane& plane, const Matrix4x4& viewProjectionMatrix, const Matrix4x4& ViewportMatrix, uint32_t color) {
 
-	Vector3 center = Multiply(plane.distance, plane.normal);
+void DrawAABB(const AABB& aabb, const Matrix4x4& viewProiectionMatrix, const Matrix4x4& ViewportMatrix,uint32_t color) {
 
-	// 平面の4つの頂点を計算
-	Vector3 Perpendiculars[4];
-	Perpendiculars[0] = Normalize(Perpendicular(plane.normal));
-	Perpendiculars[1] = { -Perpendiculars[0].x,-Perpendiculars[0].y,-Perpendiculars[0].z };
-	Perpendiculars[2] = Cross(plane.normal, Perpendiculars[0]);
-	Perpendiculars[3] = { -Perpendiculars[2].x,-Perpendiculars[2].y,-Perpendiculars[2].z };
+	// 頂点
+	Vector3 vertices[8];
+	vertices[0] = { aabb.min.x, aabb.min.y, aabb.min.z };
+	vertices[1] = { aabb.min.x, aabb.min.y, aabb.max.z };
+	vertices[2] = { aabb.min.x, aabb.max.y, aabb.min.z };
+	vertices[3] = { aabb.min.x, aabb.max.y, aabb.max.z };
+	vertices[4] = { aabb.max.x, aabb.min.y, aabb.min.z };
+	vertices[5] = { aabb.max.x, aabb.min.y, aabb.max.z };
+	vertices[6] = { aabb.max.x, aabb.max.y, aabb.min.z };
+	vertices[7] = { aabb.max.x, aabb.max.y, aabb.max.z };
 
-	Vector3 points[4];
-	// ビュープロジェクション行列とビューポート行列で各頂点を変換
-	for (uint32_t index = 0; index < 4; ++index) {
-		Vector3 extend = Multiply(2.0f, Perpendiculars[index]);
-		Vector3 point = Add(center, extend);
-		points[index] = Transform(Transform(point, viewProjectionMatrix), ViewportMatrix);
+	// 頂点を変換する
+	Vector3 transformedVertices[8];
+	for (int i = 0; i < 8; ++i) {
+		transformedVertices[i] = Transform(vertices[i], viewProiectionMatrix);
 	}
 
-	// 平面の線を描画
-	Novice::DrawLine(int(points[0].x), int(points[0].y), int(points[2].x), int(points[2].y), color);
-	Novice::DrawLine(int(points[2].x), int(points[2].y), int(points[1].x), int(points[1].y), color);
-	Novice::DrawLine(int(points[1].x), int(points[1].y), int(points[3].x), int(points[3].y), color);
-	Novice::DrawLine(int(points[3].x), int(points[3].y), int(points[0].x), int(points[0].y), color);
-}
-
-void DrawTriangle(const Triangle& triangle,const Matrix4x4& viewProjectionMatrixer, const Matrix4x4& ViewportMatrix, uint32_t color) {
-
-	Vector3 transformedVertices[3];
-	for (int i = 0; i < 3; ++i) {
-		transformedVertices[i] = Transform(triangle.vertices[i], viewProjectionMatrixer);
-	}
-	
-	Vector2 projectedVertices[3];
-	for (int i = 0; i < 3; ++i) {
+	Vector2 projectedVertices[8];
+	for (int i = 0; i < 8; ++i) {
 		projectedVertices[i] = ProjectTo2D(transformedVertices[i], ViewportMatrix);
 	}
 
-	// 三角形の3辺を描画
-	Novice::DrawLine(int(projectedVertices[0].x), int(projectedVertices[0].y), int(projectedVertices[1].x), int(projectedVertices[1].y), color);
-	Novice::DrawLine(int(projectedVertices[1].x), int(projectedVertices[1].y), int(projectedVertices[2].x), int(projectedVertices[2].y), color);
-	Novice::DrawLine(int(projectedVertices[2].x), int(projectedVertices[2].y), int(projectedVertices[0].x), int(projectedVertices[0].y), color);
+	// 描画
+	Novice::DrawLine(int(projectedVertices[0].x), int(projectedVertices[0].y), int(projectedVertices[1].x), int(projectedVertices[1].y), color); // Front bottom
+	Novice::DrawLine(int(projectedVertices[1].x), int(projectedVertices[1].y), int(projectedVertices[3].x), int(projectedVertices[3].y), color); // Front top
+	Novice::DrawLine(int(projectedVertices[3].x), int(projectedVertices[3].y), int(projectedVertices[2].x), int(projectedVertices[2].y), color); // Front top
+	Novice::DrawLine(int(projectedVertices[2].x), int(projectedVertices[2].y), int(projectedVertices[0].x), int(projectedVertices[0].y), color); // Front bottom
+
+	Novice::DrawLine(int(projectedVertices[4].x), int(projectedVertices[4].y), int(projectedVertices[5].x), int(projectedVertices[5].y), color); // Back bottom
+	Novice::DrawLine(int(projectedVertices[5].x), int(projectedVertices[5].y), int(projectedVertices[7].x), int(projectedVertices[7].y), color); // Back top
+	Novice::DrawLine(int(projectedVertices[7].x), int(projectedVertices[7].y), int(projectedVertices[6].x), int(projectedVertices[6].y), color); // Back top
+	Novice::DrawLine(int(projectedVertices[6].x), int(projectedVertices[6].y), int(projectedVertices[4].x), int(projectedVertices[4].y), color); // Back bottom
+
+	Novice::DrawLine(int(projectedVertices[0].x), int(projectedVertices[0].y), int(projectedVertices[4].x), int(projectedVertices[4].y), color); // Bottom
+	Novice::DrawLine(int(projectedVertices[1].x), int(projectedVertices[1].y), int(projectedVertices[5].x), int(projectedVertices[5].y), color); // Bottom
+	Novice::DrawLine(int(projectedVertices[2].x), int(projectedVertices[2].y), int(projectedVertices[6].x), int(projectedVertices[6].y), color); // Top
+	Novice::DrawLine(int(projectedVertices[3].x), int(projectedVertices[3].y), int(projectedVertices[7].x), int(projectedVertices[7].y), color); // Top
 }
 
 
-// 線と三角形の衝突判定
-bool  IsCollision(const Triangle& triangle, const Segment& segment) {
+// AABB同士の衝突判定
+bool  IsCollision(const AABB& aabb1, const  AABB& aabb2) {
 
-	// 三角形の法線ベクトルを計算
-	Vector3 v0v1 = {
-		triangle.vertices[1].x - triangle.vertices[0].x,
-		triangle.vertices[1].y - triangle.vertices[0].y,
-		triangle.vertices[1].z - triangle.vertices[0].z
-	};
-	Vector3 v0v2 = {
-		triangle.vertices[2].x - triangle.vertices[0].x,
-		triangle.vertices[2].y - triangle.vertices[0].y,
-		triangle.vertices[2].z - triangle.vertices[0].z
-	};
-
-	Vector3 normal = Cross(v0v1, v0v2);
-	// 三角形の平面の方程式 Ax + By + Cz + D = 0
-	float d = -Dot(normal, triangle.vertices[0]);
-
-	// 線分の始点と終点の平面からの距離
-	float startDistance = Dot(normal, segment.origin) + d;
-	float endDistance = Dot(normal,
-		{segment.origin.x + segment.diff.x,
-		 segment.origin.y + segment.diff.y, 
-		 segment.origin.z + segment.diff.z })+ d;
-
-	// 平面と線分の交点を計算
-	float t = startDistance / (startDistance - endDistance);
-	Vector3 intersection = {
-		segment.origin.x + segment.diff.x * t,
-		segment.origin.y + segment.diff.y * t,
-		segment.origin.z + segment.diff.z * t
-	};
-
-	// 交点が三角形の内部にあるかどうかを確認
-	Vector3 v0p = 
-	{
-		intersection.x - triangle.vertices[0].x,
-		intersection.y - triangle.vertices[0].y,
-		intersection.z - triangle.vertices[0].z
-	};
-	Vector3 v1p = 
-	{ 
-		intersection.x - triangle.vertices[1].x,
-		intersection.y - triangle.vertices[1].y,
-		intersection.z - triangle.vertices[1].z 
-	};
-	Vector3 v2p = 
-	{
-	    intersection.x - triangle.vertices[2].x,
-		intersection.y - triangle.vertices[2].y,
-		intersection.z - triangle.vertices[2].z
-	};
-
-	Vector3 cross01 = Cross(v0v1, v0p);
-	Vector3 cross12 = Cross(
-		{
-		triangle.vertices[2].x - triangle.vertices[1].x,
-		triangle.vertices[2].y - triangle.vertices[1].y,
-		triangle.vertices[2].z - triangle.vertices[1].z
-		}, v1p);
-	Vector3 cross20 = Cross({
-		triangle.vertices[0].x - triangle.vertices[2].x,
-		triangle.vertices[0].y - triangle.vertices[2].y,
-		triangle.vertices[0].z - triangle.vertices[2].z
-		}, v2p);
-	if (Dot(cross01, normal) >= 0.0f && Dot(cross12, normal) >= 0.0f && Dot(cross20, normal) >= 0.0f) {
+	if ( (aabb1.min.x<= aabb2.max.x && aabb1.max.x >= aabb2.min.x) && // X
+		(aabb1.min.y <= aabb2.max.y && aabb1.max.y >= aabb2.min.y) && // Y
+		(aabb1.min.z <= aabb2.max.z && aabb1.max.z >= aabb2.min.z)    // Z 
+		) {
 		return true;
 	}
 
