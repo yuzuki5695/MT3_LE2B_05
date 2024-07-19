@@ -51,18 +51,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		///
 		/// 
 
-		if (keys[DIK_D]) {
-			camaraTranslate.x += 0.01f;
-		}
-		if (keys[DIK_E]) {
-			camaraTranslate.y += 0.01f;
-		}
-		if (keys[DIK_Q]) {
-			camaraTranslate.z += 0.01f;
-		}
-		if (keys[DIK_W]) {
-			cameraRotate.y -= 0.01f;
-		}
 		Matrix4x4 worldMatrix = MakeAffineMatrix({ 1.0f,1.0f,1.0f }, { 0.0f,0.0f,0.0f }, { 0.0f,0.0f,0.0f });
 		Matrix4x4 viewWorldMatrix = Inverse(worldMatrix);
 
@@ -91,7 +79,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		ImGui::DragFloat3("AABB.Max", &aabb.max.x, 0.01f);
 		ImGui::DragFloat3("Segment.segment", &segment.origin.x, 0.01f);
 		ImGui::DragFloat3("Segment.diff", &segment.diff.x, 0.01f);
-
 		ImGui::Checkbox("fige",&fige);
 
 		///
@@ -111,7 +98,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		} else if (fige == false) {
 			DrawAABB(aabb, ViewProjectionMatrix, ViewportMatrix, WHITE);
 		}
-
 
 		ImGui::End();
 

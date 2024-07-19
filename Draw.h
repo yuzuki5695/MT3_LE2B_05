@@ -143,8 +143,15 @@ bool  IsCollision(const AABB& aabb, const Segment& segment) {
 	float tmin = max(max(tminX, tminY), tminZ);
 	float tmax = min(min(tmaxX, tmaxY), tmaxZ);
 
-	// 線分がAABBに交差するかどうかを判断
-	if (tmax >= max(0.0f, tmin)) {
+	// 線分の始点と終点を計算
+	Vector3 segmentEnd = { 
+		segmentOrig.x + segmentDir.x,
+		segmentOrig.y + segmentDir.y,
+		segmentOrig.z + segmentDir.z
+	};
+
+	// 線分がAABBに交差するかどうかを判定
+	if (tmax >= max(0.0f, tmin) && tmin <= 1.0f && tmax >= 0.0f) {
 		return true;
 	}
 
