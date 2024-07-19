@@ -23,13 +23,13 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	Vector3 camaraTranslate = { 0.0f,1.9f,-6.49f };
 	Vector3 cameraRotate = { 0.26f,0.0f,0.0f };
 
-	AABB aabb1;
-	aabb1.min = { -0.5f,-0.5f,-0.5f };
-	aabb1.max = { 0.0f,0.0f,0.0f };
+	AABB aabb;
+	aabb.min = { -0.5f,-0.5f,-0.5f };
+	aabb.max = { 0.0f,0.0f,0.0f };
 
-	Sphere sphere{};
-	sphere.center.x = 1.5f;
-	sphere.radius = 0.5f;
+	Segment segment{};
+	segment.diff.x = 1.2f;
+	segment.diff.y = 0.5f;
 
 	bool fige = false;
 
@@ -61,9 +61,12 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		Matrix4x4 ViewProjectionMatrix = Multiply(viewWorldMatrix, Multiply(viewCameraMatrix, projectionMatrix));
 		Matrix4x4 ViewportMatrix = MakeViewportMatrix(0.0f, 0.0f, float(kWindowWidth), float(kWindowHeight), 0.0f, 1.0f);
 		
+		Vector3 start = Transform(Transform(segment.origin, ViewProjectionMatrix), ViewportMatrix);
+		Vector3 end = Transform(Transform(Add(segment.origin, segment.diff), ViewProjectionMatrix), ViewportMatrix);
+
 		
-		// AABBと球の衝突判定
-		if (IsCollision(aabb1, sphere)) {
+		// AABBと線の衝突判定
+		if (IsCollision(aabb,segment)) {
 			// 衝突したら
 			fige = true;
 		} else {
@@ -72,10 +75,11 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		}
 
 		ImGui::Begin("Window");
-		ImGui::DragFloat3("AABB1.Min", &aabb1.min.x, 0.01f);
-		ImGui::DragFloat3("AABB1.Max", &aabb1.max.x, 0.01f);
-		ImGui::DragFloat3("Sphere.Center", &sphere.center.x, 0.01f);
-		ImGui::DragFloat("Sphere.Radius", &sphere.radius, 0.01f);
+		ImGui::DragFloat3("AABB.Min", &aabb.min.x, 0.01f);
+		ImGui::DragFloat3("AABB.Max", &aabb.max.x, 0.01f);
+		ImGui::DragFloat3("Segment.segment", &segment.origin.x, 0.01f);
+		ImGui::DragFloat3("Segment.diff", &segment.diff.x, 0.01f);
+
 		ImGui::Checkbox("fige",&fige);
 
 		///
@@ -88,13 +92,14 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 		DrawGrid(ViewProjectionMatrix, ViewportMatrix);
 
+		Novice::DrawLine((int)start.x, (int)start.y, (int)end.x, (int)end.y, WHITE);
+
 		if (fige == true) {
-			DrawAABB(aabb1, ViewProjectionMatrix, ViewportMatrix, RED);
+			DrawAABB(aabb, ViewProjectionMatrix, ViewportMatrix, RED);
 		} else if (fige == false) {
-			DrawAABB(aabb1, ViewProjectionMatrix, ViewportMatrix, WHITE);
+			DrawAABB(aabb, ViewProjectionMatrix, ViewportMatrix, WHITE);
 		}
 
-		DrawSphere(sphere, ViewProjectionMatrix, ViewportMatrix, WHITE);
 
 		ImGui::End();
 

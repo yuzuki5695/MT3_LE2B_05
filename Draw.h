@@ -115,83 +115,37 @@ void DrawAABB(const AABB& aabb, const Matrix4x4& viewProiectionMatrix, const Mat
 }
 
 
-static void DrawSphere(const Sphere& sphere, const Matrix4x4& viewProjectionMatrix, const Matrix4x4& viewportMatrix, uint32_t color)
-{
-	const uint32_t kSubdivision = 12;							//分割数
-	const float kLatStep = (float)M_PI / kSubdivision;			//緯度のステップ
-	const float kLonStep = 2.0f * (float)M_PI / kSubdivision;	//経度のステップ
+// AABBと線の衝突判定
+bool  IsCollision(const AABB& aabb, const Segment& segment) {
 
-	// 緯度のループ
-	for (uint32_t latIndex = 0; latIndex < kSubdivision; ++latIndex)
-	{
-		float lat = -0.5f * (float)M_PI + latIndex * kLatStep;	//現在の緯度
+	Vector3 segmentDir = segment.diff;
+	Vector3 segmentOrig = segment.origin;
 
-		//次の緯度
-		float nextLat = lat + kLatStep;
+	// AABBの面の最小値と最大値
+	Vector3 aabbMin = aabb.min;
+	Vector3 aabbMax = aabb.max;
 
-		//経度のループ
-		for (uint32_t lonIndex = 0; lonIndex < kSubdivision; ++lonIndex)
-		{
-			//現在の経度
-			float lon = lonIndex * kLonStep;
+	// 線分の方向ベクトルの逆数
+	float invDirX = 1.0f / segmentDir.x;
+	float invDirY = 1.0f / segmentDir.y;
+	float invDirZ = 1.0f / segmentDir.z;
 
-			//次の経度
-			float nextLon = lon + kLonStep;
+	// AABBの最小面と最大面で線分のパラメータ t の範囲を求める
+	float t1 = (aabbMin.x - segmentOrig.x) * invDirX;
+	float t2 = (aabbMax.x - segmentOrig.x) * invDirX;
+	float t3 = (aabbMin.y - segmentOrig.y) * invDirY;
+	float t4 = (aabbMax.y - segmentOrig.y) * invDirY;
+	float t5 = (aabbMin.z - segmentOrig.z) * invDirZ;
+	float t6 = (aabbMax.z - segmentOrig.z) * invDirZ;
 
-			// 球面座標の計算
-			Vector3 pointA
-			{
-				sphere.center.x + sphere.radius * cos(lat) * cos(lon),
-				sphere.center.y + sphere.radius * sin(lat),
-				sphere.center.z + sphere.radius * cos(lat) * sin(lon)
-			};
+	// t の範囲を計算
+	float tmin = std::max(std::max(std::min(t1, t2), std::min(t3, t4)), std::min(t5, t6));
+	float tmax = std::min(std::min(std::max(t1, t2), std::max(t3, t4)), std::max(t5, t6));
 
-			Vector3 pointB
-			{
-				sphere.center.x + sphere.radius * cos(nextLat) * cos(lon),
-				sphere.center.y + sphere.radius * sin(nextLat),
-				sphere.center.z + sphere.radius * cos(nextLat) * sin(lon)
-			};
-
-			Vector3 pointC
-			{
-				sphere.center.x + sphere.radius * cos(lat) * cos(nextLon),
-				sphere.center.y + sphere.radius * sin(lat),
-				sphere.center.z + sphere.radius * cos(lat) * sin(nextLon)
-			};
-
-			// スクリーン座標に変換
-			pointA = Transform(pointA, Multiply(viewProjectionMatrix, viewportMatrix));
-			pointB = Transform(pointB, Multiply(viewProjectionMatrix, viewportMatrix));
-			pointC = Transform(pointC, Multiply(viewProjectionMatrix, viewportMatrix));
-
-			// 線分の描画
-			Novice::DrawLine((int)pointA.x, (int)pointA.y, (int)pointB.x, (int)pointB.y, color);
-			Novice::DrawLine((int)pointA.x, (int)pointA.y, (int)pointC.x, (int)pointC.y, color);
-		}
-	}
-}
-
-// AABBと球の衝突判定
-bool  IsCollision(const AABB& aabb, const  Sphere& sphere) {
-
-	// 球の中心に最も近いAABBの点を計算
-	Vector3 closestPoint = { 
-		std::clamp(sphere.center.x,aabb.min.x,aabb.max.x),
-		std::clamp(sphere.center.y,aabb.min.y,aabb.max.y),
-		std::clamp(sphere.center.z,aabb.min.z,aabb.max.z)
-	};
-
-	// 球の中心とこの点との距離を計算
-	float distanceX = sphere.center.x - closestPoint.x;
-	float distanceY = sphere.center.y - closestPoint.y;
-	float distanceZ = sphere.center.z - closestPoint.z;
-
-	float distanceSquared = distanceX * distanceX + distanceY * distanceY + distanceZ * distanceZ;
-
-	if (distanceSquared <= (sphere.radius * sphere.radius)) {
+	// 線分がAABBに交差するかどうかを判断
+	if (tmax >= std::max(0.0f, tmin)) {
 		return true;
-	}	
+	}
 
 	return false;
 }
