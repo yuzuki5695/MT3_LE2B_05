@@ -71,3 +71,41 @@ void DrawGrid(const Matrix4x4& viewProiectionMatrix, const Matrix4x4& ViewportMa
 	}
 
 }
+
+Vector3 Lerp(const Vector3& v1, const Vector3& v2, float t) {
+	// 制御点の補間
+	Vector3 v1Scaled = { v1.x * (1.0f - t),v1.y * (1.0f - t),v1.z * (1.0f - t) };
+	Vector3 v2Scaled = { v2.x * t,v2.y * t,v2.z * t };
+	// 2つの制御点をさらに補間
+	Vector3 result = { v1Scaled.x + v2Scaled.x,v1Scaled.y + v2Scaled.y,v1Scaled.z + v2Scaled.z };
+
+	return result;
+}
+
+void DrawBezier(const Vector3& controlPoint0, const Vector3& controlPoint1, const Vector3& controlPoint2,
+	const Matrix4x4& viewProiectionMatrix, const Matrix4x4& ViewportMatrix, uint32_t color) {
+
+	const int numSegments = 100; // ベジェ曲線を描画するためのセグメント数
+	Vector3 previousPoint = controlPoint0;
+
+	for (int i = 1; i <= numSegments; ++i) {
+		float t = static_cast<float>(i) / numSegments;
+
+		// ベジェ曲線上の点を計算
+		Vector3 pointOnCurve = Lerp(Lerp(controlPoint0, controlPoint1, t), Lerp(controlPoint1, controlPoint2, t), t);
+
+		// 点を変換する
+		Vector3 transformedPrevPoint = Transform(previousPoint, viewProiectionMatrix);
+		Vector3 transformedPointOnCurve = Transform(pointOnCurve, viewProiectionMatrix);
+
+		// 2Dプロジェクション
+		Vector2 projectedPrevPoint = ProjectTo2D(transformedPrevPoint, ViewportMatrix);
+		Vector2 projectedPointOnCurve = ProjectTo2D(transformedPointOnCurve, ViewportMatrix);
+
+		// 線を描画
+		Novice::DrawLine(static_cast<int>(projectedPrevPoint.x), static_cast<int>(projectedPrevPoint.y),
+			static_cast<int>(projectedPointOnCurve.x), static_cast<int>(projectedPointOnCurve.y), color);
+
+		previousPoint = pointOnCurve;
+	}
+}

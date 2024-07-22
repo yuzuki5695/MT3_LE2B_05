@@ -23,6 +23,12 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	Vector3 camaraTranslate = { 0.0f,1.9f,-6.49f };
 	Vector3 cameraRotate = { 0.26f,0.0f,0.0f };
 
+	Vector3 controlPoints[3] = {
+		{-0.8f,0.58f,1.0f},
+		{1.76f,1.0f,-0.3f},
+		{-0.8f,-0.7f,2.3f}
+	};
+
 
 	// キー入力結果を受け取る箱
 	char keys[256] = { 0 };
@@ -52,11 +58,10 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		Matrix4x4 ViewProjectionMatrix = Multiply(viewWorldMatrix, Multiply(viewCameraMatrix, projectionMatrix));
 		Matrix4x4 ViewportMatrix = MakeViewportMatrix(0.0f, 0.0f, float(kWindowWidth), float(kWindowHeight), 0.0f, 1.0f);
 
-
-
 		ImGui::Begin("Window");
-		//ImGui::DragFloat3("AABB.Min", &aabb.min.x, 0.01f);
-
+		ImGui::DragFloat3("ControlPoints[0]", &controlPoints[0].x, 0.01f);
+		ImGui::DragFloat3("ControlPoints[1]", &controlPoints[1].x, 0.01f);
+		ImGui::DragFloat3("ControlPoints[2]", &controlPoints[2].x, 0.01f);
 
 		///
 		/// ↑更新処理ここまで
@@ -67,6 +72,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		///
 
 		DrawGrid(ViewProjectionMatrix, ViewportMatrix);
+
+		DrawBezier(controlPoints[0], controlPoints[1], controlPoints[2], ViewProjectionMatrix, ViewportMatrix,BLUE);
 
 		ImGui::End();
 
