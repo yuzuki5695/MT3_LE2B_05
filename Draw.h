@@ -186,7 +186,7 @@ void DrawBezier(const Vector3& controlPoint0, const Vector3& controlPoint1, cons
 
 }
 
-void DrawBall(const Vector3& position, Vector2 radius, uint32_t color, const Matrix4x4& viewProjectionMatrix, const Matrix4x4& viewportMatrix) {
+void DrawBall(const Vector3& position, float radius, unsigned int color, const Matrix4x4& viewProjectionMatrix, const Matrix4x4& viewportMatrix) {
 	// ボールの位置を変換する
 	Vector3 transformedPosition = Transform(position, viewProjectionMatrix);
 
@@ -194,5 +194,5 @@ void DrawBall(const Vector3& position, Vector2 radius, uint32_t color, const Mat
 	Vector2 projectedPosition = ProjectTo2D(transformedPosition, viewportMatrix);
 
 	// ボールを描画する
-	Novice::DrawEllipse(static_cast<int>(projectedPosition.x), static_cast<int>(projectedPosition.y), radius.x, radius.y,0.0f,color,kFillModeSolid);
+	Novice::DrawEllipse(static_cast<int>(projectedPosition.x), static_cast<int>(projectedPosition.y), int(radius),int(radius),0.0f,color,kFillModeSolid);
 }

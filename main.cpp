@@ -119,7 +119,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 		DrawGrid(ViewProjectionMatrix, ViewportMatrix);
 
-		DrawBall(ball.position, ball.radius, ball.color,);
+		DrawBall(ball.position, ball.radius, ball.color, ViewProjectionMatrix, ViewportMatrix);
 
 		///
 		/// ↓描画処理ここから
