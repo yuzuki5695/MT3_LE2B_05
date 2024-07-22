@@ -1,6 +1,7 @@
 ﻿#pragma once
 #include<Matrix.h>
 #include<algorithm>
+#include <vector>
 
 struct Sphere {
 	Vector3 center; //!< 中心点
@@ -72,6 +73,63 @@ void DrawGrid(const Matrix4x4& viewProiectionMatrix, const Matrix4x4& ViewportMa
 
 }
 
+static void DrawSphere(const Sphere& sphere, const Matrix4x4& viewProjectionMatrix, const Matrix4x4& viewportMatrix, uint32_t color)
+{
+	const uint32_t kSubdivision = 20;							//分割数
+	const float kLatStep = (float)M_PI / kSubdivision;			//緯度のステップ
+	const float kLonStep = 2.0f * (float)M_PI / kSubdivision;	//経度のステップ
+
+	// 緯度のループ
+	for (uint32_t latIndex = 0; latIndex < kSubdivision; ++latIndex)
+	{
+		float lat = -0.5f * (float)M_PI + latIndex * kLatStep;	//現在の緯度
+
+		//次の緯度
+		float nextLat = lat + kLatStep;
+
+		//経度のループ
+		for (uint32_t lonIndex = 0; lonIndex < kSubdivision; ++lonIndex)
+		{
+			//現在の経度
+			float lon = lonIndex * kLonStep;
+
+			//次の経度
+			float nextLon = lon + kLonStep;
+
+			// 球面座標の計算
+			Vector3 pointA
+			{
+				sphere.center.x + sphere.radius * cos(lat) * cos(lon),
+				sphere.center.y + sphere.radius * sin(lat),
+				sphere.center.z + sphere.radius * cos(lat) * sin(lon)
+			};
+
+			Vector3 pointB
+			{
+				sphere.center.x + sphere.radius * cos(nextLat) * cos(lon),
+				sphere.center.y + sphere.radius * sin(nextLat),
+				sphere.center.z + sphere.radius * cos(nextLat) * sin(lon)
+			};
+
+			Vector3 pointC
+			{
+				sphere.center.x + sphere.radius * cos(lat) * cos(nextLon),
+				sphere.center.y + sphere.radius * sin(lat),
+				sphere.center.z + sphere.radius * cos(lat) * sin(nextLon)
+			};
+
+			// スクリーン座標に変換
+			pointA = Transform(pointA, Multiply(viewProjectionMatrix, viewportMatrix));
+			pointB = Transform(pointB, Multiply(viewProjectionMatrix, viewportMatrix));
+			pointC = Transform(pointC, Multiply(viewProjectionMatrix, viewportMatrix));
+
+			// 線分の描画
+			Novice::DrawLine((int)pointA.x, (int)pointA.y, (int)pointB.x, (int)pointB.y, color);
+			Novice::DrawLine((int)pointA.x, (int)pointA.y, (int)pointC.x, (int)pointC.y, color);
+		}
+	}
+}
+
 Vector3 Lerp(const Vector3& v1, const Vector3& v2, float t) {
 	// 制御点の補間
 	Vector3 v1Scaled = { v1.x * (1.0f - t),v1.y * (1.0f - t),v1.z * (1.0f - t) };
@@ -87,6 +145,7 @@ void DrawBezier(const Vector3& controlPoint0, const Vector3& controlPoint1, cons
 
 	const int numSegments = 100; // ベジェ曲線を描画するためのセグメント数
 	Vector3 previousPoint = controlPoint0;
+	std::vector<Sphere> spherePositions;
 
 	for (int i = 1; i <= numSegments; ++i) {
 		float t = static_cast<float>(i) / numSegments;
@@ -108,4 +167,5 @@ void DrawBezier(const Vector3& controlPoint0, const Vector3& controlPoint1, cons
 
 		previousPoint = pointOnCurve;
 	}
+
 }

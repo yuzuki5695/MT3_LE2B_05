@@ -29,6 +29,22 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		{-0.8f,-0.7f,2.3f}
 	};
 
+	Vector3 translates[3] = {
+		{0.2f,1.0f,0.0f},
+		{0.4f,0.0f,0.0f},
+		{0.3f,0.0f,0.0f}
+	};
+	Vector3 rotates[3] = {
+		{0.0f,0.0f,-6.8f},
+		{0.0f,0.0f,-1.4f},
+		{0.0f,0.0f,0.0f}
+	};
+	Vector3 scales[3] = {
+		{1.0f,1.0f,1.0f},
+		{1.0f,1.0f,1.0f},
+		{1.0f,1.0f,1.0f}
+	};
+
 
 	// キー入力結果を受け取る箱
 	char keys[256] = { 0 };
@@ -59,9 +75,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		Matrix4x4 ViewportMatrix = MakeViewportMatrix(0.0f, 0.0f, float(kWindowWidth), float(kWindowHeight), 0.0f, 1.0f);
 
 		ImGui::Begin("Window");
-		ImGui::DragFloat3("ControlPoints[0]", &controlPoints[0].x, 0.01f);
-		ImGui::DragFloat3("ControlPoints[1]", &controlPoints[1].x, 0.01f);
-		ImGui::DragFloat3("ControlPoints[2]", &controlPoints[2].x, 0.01f);
+		ImGui::DragFloat3("Translates[0]", &translates[0].x, 0.01f);
+		ImGui::DragFloat3("Rotates[0]", &rotates[0].x, 0.01f);
+		ImGui::DragFloat3("Scales[0]", &scales[0].x, 0.01f);
 
 		///
 		/// ↑更新処理ここまで
