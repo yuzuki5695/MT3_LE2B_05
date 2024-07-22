@@ -23,20 +23,19 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	Vector3 camaraTranslate = { 0.0f,1.9f,-6.49f };
 	Vector3 cameraRotate = { 0.26f,0.0f,0.0f };
 	
-	Vector3 a{ 0.2f,1.0f,0.0f };
-	Vector3 b{ 2.4f,3.1f,1.2f };
+	Spring spring{};
+	spring.anchor = { 0.0f,0.0f,0.0f };
+	spring.naturalLength = 1.0f;
+	spring.stiffness = 100.0f;
 
-	Vector3 c = { a.x + b.x, a.y + b.y, a.z + b.z };
-	Vector3 d = { a.x - b.x, a.y - b.y, a.z - b.z };
-	Vector3 e = { a.x * 2.4f,a.y * 2.4f, a.z * 2.4f, };
 
-	Vector3 rotate{ 0.4f,1.43f,-0.8f };
+	Ball ball{};
+	ball.position = { 1.2f,0.0f,0.0f };
+	ball.mass = 2.0f;
+	ball.radius = 0.05f;
+	ball.color = BLUE;
 
-	Matrix4x4 rotateXMatrix = MakeRotateXMatrix(rotate.x);
-	Matrix4x4 rotateYMatrix = MakeRotateYMatrix(rotate.y);
-	Matrix4x4 rotateZMatrix = MakeRotateZMatrix(rotate.z);
-
-	Matrix4x4 rotateMatrix = Multiply(Multiply(rotateXMatrix, rotateYMatrix), rotateZMatrix);
+	float deltaTime = 1.0f / 60.0f;
 
 	// キー入力結果を受け取る箱
 	char keys[256] = { 0 };
@@ -66,22 +65,61 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		Matrix4x4 ViewProjectionMatrix = Multiply(viewWorldMatrix, Multiply(viewCameraMatrix, projectionMatrix));
 		Matrix4x4 ViewportMatrix = MakeViewportMatrix(0.0f, 0.0f, float(kWindowWidth), float(kWindowHeight), 0.0f, 1.0f);
 
+		Vector3 diff = { 
+		ball.position.x - spring.anchor.x,
+		ball.position.y - spring.anchor.y, 
+		ball.position.z - spring.anchor.z 
+		};
+
+		float length = Length(diff);
+		if (length != 0.0f) {
+			Vector3 direction = Normalize(diff);
+			Vector3 restPosition = {
+			 spring.anchor.x + direction.x * spring.naturalLength,
+			 spring.anchor.y + direction.y * spring.naturalLength,
+			 spring.anchor.z + direction.z * spring.naturalLength,
+			};
+			Vector3 displacement = {
+				length * (ball.position.x - restPosition.x),
+				length * (ball.position.y - restPosition.y),
+				length * (ball.position.z - restPosition.z),
+			};
+
+			Vector3 restoringForce = {
+				-spring.stiffness * displacement.x,
+				-spring.stiffness * displacement.y,
+				-spring.stiffness * displacement.z
+			};
+			
+			Vector3 force = restoringForce;
+
+			ball.acceleration.x = force.x / ball.mass;
+			ball.acceleration.y = force.y / ball.mass;
+			ball.acceleration.z = force.z / ball.mass;
+		}
+
+		ball.velocity.x += ball.acceleration.x * deltaTime;
+		ball.velocity.y += ball.acceleration.y * deltaTime;
+		ball.velocity.z += ball.acceleration.z * deltaTime;
+
+		ball.position.x += ball.velocity.x * deltaTime;
+		ball.position.y += ball.velocity.y * deltaTime;
+		ball.position.z += ball.velocity.z * deltaTime;
+
+
+
 		ImGui::Begin("Window");
 		
-		ImGui::Text("c:%f,%f,%f", c.x, c.y, c.z);
-		ImGui::Text("d:%f,%f,%f", d.x, d.y, d.z);
-		ImGui::Text("e:%f,%f,%f", e.x, e.y, e.z);
-		ImGui::Text("matrix:\n%f,%f,%f,%f,\n%f,%f,%f,%f,\n%f,%f,%f,%f,\n%f,%f,%f,%f,\n",
-			rotateMatrix.m[0][0], rotateMatrix.m[0][1], rotateMatrix.m[0][2],rotateMatrix.m[0][3],
-			rotateMatrix.m[1][0], rotateMatrix.m[1][1], rotateMatrix.m[1][2], rotateMatrix.m[1][3],
-			rotateMatrix.m[2][0], rotateMatrix.m[2][1], rotateMatrix.m[2][2], rotateMatrix.m[2][3],
-			rotateMatrix.m[3][0], rotateMatrix.m[3][1], rotateMatrix.m[3][2], rotateMatrix.m[3][3]	
-		);
+
 		ImGui::End();
 
 		///
 		/// ↑更新処理ここまで
 		///
+
+		DrawGrid(ViewProjectionMatrix, ViewportMatrix);
+
+		DrawBall(ball.position, ball.radius, ball.color,);
 
 		///
 		/// ↓描画処理ここから

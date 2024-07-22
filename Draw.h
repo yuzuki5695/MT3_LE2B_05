@@ -27,6 +27,22 @@ struct AABB {
 	Vector3 max; //!< 最大点
 };
 
+struct Spring {
+	// アンカー。固定された端の位置
+	Vector3 anchor;
+	float naturalLength; // 自然長
+	float stiffness;     // 剛性。バネ定数k
+};
+
+struct Ball {
+	Vector3 position;      // ボールの位置
+	Vector3 velocity;      // ボールの速度
+	Vector3 acceleration;   // ボールの加速度
+	float mass;            // ボールの質量
+	float radius;          // ボールの半径
+	unsigned int color;    // ボールの色
+};
+
 Vector3 Project(const Vector3& v1, const Vector3& v2) {
 	return (Dot(v1, v2) / powf(Length(v2), 2), v2);
 };
@@ -168,4 +184,15 @@ void DrawBezier(const Vector3& controlPoint0, const Vector3& controlPoint1, cons
 		previousPoint = pointOnCurve;
 	}
 
+}
+
+void DrawBall(const Vector3& position, Vector2 radius, uint32_t color, const Matrix4x4& viewProjectionMatrix, const Matrix4x4& viewportMatrix) {
+	// ボールの位置を変換する
+	Vector3 transformedPosition = Transform(position, viewProjectionMatrix);
+
+	// 2Dプロジェクション
+	Vector2 projectedPosition = ProjectTo2D(transformedPosition, viewportMatrix);
+
+	// ボールを描画する
+	Novice::DrawEllipse(static_cast<int>(projectedPosition.x), static_cast<int>(projectedPosition.y), radius.x, radius.y,0.0f,color,kFillModeSolid);
 }
