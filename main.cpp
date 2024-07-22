@@ -25,6 +25,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	
 	Vector3 a{ 0.2f,1.0f,0.0f };
 	Vector3 b{ 2.4f,3.1f,1.2f };
+
 	Vector3 c = { a.x + b.x, a.y + b.y, a.z + b.z };
 	Vector3 d = { a.x - b.x, a.y - b.y, a.z - b.z };
 	Vector3 e = { a.x * 2.4f,a.y * 2.4f, a.z * 2.4f, };
