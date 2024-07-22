@@ -73,7 +73,7 @@ void DrawGrid(const Matrix4x4& viewProiectionMatrix, const Matrix4x4& ViewportMa
 
 }
 
-static void DrawSphere(const Sphere& sphere, const Matrix4x4& viewProjectionMatrix, const Matrix4x4& viewportMatrix, uint32_t color)
+ void DrawSphere(const Sphere& sphere, const Matrix4x4& viewProjectionMatrix, const Matrix4x4& viewportMatrix, uint32_t color)
 {
 	const uint32_t kSubdivision = 20;							//分割数
 	const float kLatStep = (float)M_PI / kSubdivision;			//緯度のステップ
