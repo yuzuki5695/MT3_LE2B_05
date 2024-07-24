@@ -147,58 +147,19 @@ void DrawGrid(const Matrix4x4& viewProiectionMatrix, const Matrix4x4& ViewportMa
 	}
 }
 
-Vector3 Lerp(const Vector3& v1, const Vector3& v2, float t) {
-	// 制御点の補間
-	Vector3 v1Scaled = { v1.x * (1.0f - t),v1.y * (1.0f - t),v1.z * (1.0f - t) };
-	Vector3 v2Scaled = { v2.x * t,v2.y * t,v2.z * t };
-	// 2つの制御点をさらに補間
-	Vector3 result = { v1Scaled.x + v2Scaled.x,v1Scaled.y + v2Scaled.y,v1Scaled.z + v2Scaled.z };
-
-	return result;
-}
-
-void DrawBezier(const Vector3& controlPoint0, const Vector3& controlPoint1, const Vector3& controlPoint2,
-	const Matrix4x4& viewProiectionMatrix, const Matrix4x4& ViewportMatrix, uint32_t color) {
-
-	const int numSegments = 100; // ベジェ曲線を描画するためのセグメント数
-	Vector3 previousPoint = controlPoint0;
-	std::vector<Sphere> spherePositions;
-
-	for (int i = 1; i <= numSegments; ++i) {
-		float t = static_cast<float>(i) / numSegments;
-
-		// ベジェ曲線上の点を計算
-		Vector3 pointOnCurve = Lerp(Lerp(controlPoint0, controlPoint1, t), Lerp(controlPoint1, controlPoint2, t), t);
-
-		// 点を変換する
-		Vector3 transformedPrevPoint = Transform(previousPoint, viewProiectionMatrix);
-		Vector3 transformedPointOnCurve = Transform(pointOnCurve, viewProiectionMatrix);
-
-		// 2Dプロジェクション
-		Vector2 projectedPrevPoint = ProjectTo2D(transformedPrevPoint, ViewportMatrix);
-		Vector2 projectedPointOnCurve = ProjectTo2D(transformedPointOnCurve, ViewportMatrix);
-
-		// 線を描画
-		Novice::DrawLine(static_cast<int>(projectedPrevPoint.x), static_cast<int>(projectedPrevPoint.y),
-			static_cast<int>(projectedPointOnCurve.x), static_cast<int>(projectedPointOnCurve.y), color);
-
-		previousPoint = pointOnCurve;
-	}
-
-}
-
-void DrawBall(const Vector3& position, float radius, unsigned int color, const Matrix4x4& viewProjectionMatrix, const Matrix4x4& viewportMatrix) {
+void DrawLien(const Vector3& start, const Vector3& end,const Matrix4x4& viewProjectionMatrix, const Matrix4x4& viewportMatrix,unsigned int color ) {
 	// ボールの位置を変換する
-	Vector3 transformedPosition = Transform(position, viewProjectionMatrix);
-
+	Vector3 transformedPositionstart = Transform(start, viewProjectionMatrix);
+	Vector3 transformedPositionend = Transform(end, viewProjectionMatrix);
 	// 2Dプロジェクション
-	Vector2 projectedPosition = ProjectTo2D(transformedPosition, viewportMatrix);
+	Vector2 projectedPositionstart = ProjectTo2D(transformedPositionstart, viewportMatrix);
+	Vector2 projectedPositionend = ProjectTo2D(transformedPositionend, viewportMatrix);
 
 	// ボールを描画する
-	Novice::DrawEllipse(
-		static_cast<int>(projectedPosition.x),
-		static_cast<int>(projectedPosition.y),
-		int(radius),int(radius),
-		0.0f,color,
-		kFillModeSolid);
+	Novice::DrawLine (
+		static_cast<int>(projectedPositionstart.x),
+		static_cast<int>(projectedPositionstart.y),
+		static_cast<int>(projectedPositionend.x),
+		static_cast<int>(projectedPositionend.y),
+		color);
 }

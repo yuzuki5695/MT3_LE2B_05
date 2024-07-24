@@ -150,6 +150,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 		DrawSphere(sphere,ViewProjectionMatrix, ViewportMatrix, ball.color);
 
+		DrawLien(Vector3(0.0f,0.0f,0.0f),ball.position, ViewProjectionMatrix, ViewportMatrix, WHITE);
+
 		///
 		/// ↓描画処理ここから
 		///
