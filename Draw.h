@@ -32,6 +32,7 @@ struct Spring {
 	Vector3 anchor;
 	float naturalLength; // 自然長
 	float stiffness;     // 剛性。バネ定数k
+	float dampingCoefficient; // 減衰係数
 };
 
 struct Ball {
@@ -91,7 +92,7 @@ void DrawGrid(const Matrix4x4& viewProiectionMatrix, const Matrix4x4& ViewportMa
 
  void DrawSphere(const Sphere& sphere, const Matrix4x4& viewProjectionMatrix, const Matrix4x4& viewportMatrix, uint32_t color)
 {
-	const uint32_t kSubdivision = 20;							//分割数
+	const uint32_t kSubdivision = 8;							//分割数
 	const float kLatStep = (float)M_PI / kSubdivision;			//緯度のステップ
 	const float kLonStep = 2.0f * (float)M_PI / kSubdivision;	//経度のステップ
 
@@ -194,5 +195,10 @@ void DrawBall(const Vector3& position, float radius, unsigned int color, const M
 	Vector2 projectedPosition = ProjectTo2D(transformedPosition, viewportMatrix);
 
 	// ボールを描画する
-	Novice::DrawEllipse(static_cast<int>(projectedPosition.x), static_cast<int>(projectedPosition.y), int(radius),int(radius),0.0f,color,kFillModeSolid);
+	Novice::DrawEllipse(
+		static_cast<int>(projectedPosition.x),
+		static_cast<int>(projectedPosition.y),
+		int(radius),int(radius),
+		0.0f,color,
+		kFillModeSolid);
 }
