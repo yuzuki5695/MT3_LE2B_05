@@ -83,13 +83,13 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			ball.position.z = sphere.center.z;
 
 			// 速度の計算
-			ball.velocity.x = -ball.radius * std::sin(angle) * ball.radius;
+			ball.velocity.x = ball.radius * std::sin(angle) * ball.radius;
 			ball.velocity.y = ball.radius *  std::cos(angle) * ball.radius;
 			ball.velocity.z = 0.0f;
 
 			// 加速度の計算
-			ball.acceleration.x = -angularVelocity * angularVelocity * ball.position.x;
-			ball.acceleration.y = -angularVelocity * angularVelocity * ball.position.y;
+			ball.acceleration.x = angularVelocity * angularVelocity * ball.position.x;
+			ball.acceleration.y = angularVelocity * angularVelocity * ball.position.y;
 			ball.acceleration.z = 0.0f;
 		}
 
@@ -117,8 +117,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		DrawGrid(ViewProjectionMatrix, ViewportMatrix);
 
 		DrawSphere(sphere,ViewProjectionMatrix, ViewportMatrix, ball.color);
-
-		DrawLien(Vector3(0.0f,0.0f,0.0f),ball.position, ViewProjectionMatrix, ViewportMatrix, WHITE);
 
 		///
 		/// ↓描画処理ここから
