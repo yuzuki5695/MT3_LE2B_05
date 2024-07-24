@@ -164,6 +164,39 @@ void DrawGrid(const Matrix4x4& viewProiectionMatrix, const Matrix4x4& ViewportMa
 	}
 }
 
+ Vector3 MultiPly(float scalar, const Vector3& vector) {
+	 return { scalar * vector.x, scalar * vector.y, scalar * vector.z };
+ }
+
+
+ void DrawPlane(const Plane& plane, const Matrix4x4& viewProjectionMatrix, const Matrix4x4& ViewportMatrix, uint32_t color) {
+
+	 Vector3 center = MultiPly(plane.distance, plane.normal);
+
+	 // 平面の4つの頂点を計算
+	 Vector3 Perpendiculars[4];
+	 Perpendiculars[0] = Normalize(Perpendicular(plane.normal));
+	 Perpendiculars[1] = { -Perpendiculars[0].x,-Perpendiculars[0].y,-Perpendiculars[0].z };
+	 Perpendiculars[2] = Cross(plane.normal, Perpendiculars[0]);
+	 Perpendiculars[3] = { -Perpendiculars[2].x,-Perpendiculars[2].y,-Perpendiculars[2].z };
+
+	 Vector3 points[4];
+	 // ビュープロジェクション行列とビューポート行列で各頂点を変換
+	 for (uint32_t index = 0; index < 4; ++index) {
+		 Vector3 extend = MultiPly(2.0f, Perpendiculars[index]);
+		 Vector3 point = Add(center, extend);
+		 points[index] = Transform(Transform(point, viewProjectionMatrix), ViewportMatrix);
+	 }
+
+	 // 平面の線を描画
+	 Novice::DrawLine(int(points[0].x), int(points[0].y), int(points[2].x), int(points[2].y), color);
+	 Novice::DrawLine(int(points[2].x), int(points[2].y), int(points[1].x), int(points[1].y), color);
+	 Novice::DrawLine(int(points[1].x), int(points[1].y), int(points[3].x), int(points[3].y), color);
+	 Novice::DrawLine(int(points[3].x), int(points[3].y), int(points[0].x), int(points[0].y), color);
+ }
+
+
+
 void DrawLien(const Vector3& start, const Vector3& end,const Matrix4x4& viewProjectionMatrix, const Matrix4x4& viewportMatrix,unsigned int color ) {
 	// ボールの位置を変換する
 	Vector3 transformedPositionstart = Transform(start, viewProjectionMatrix);

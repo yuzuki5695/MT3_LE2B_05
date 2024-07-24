@@ -26,16 +26,10 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	Sphere sphere{};
 	sphere.radius = 0.08f;
 
-	float deltaTime = 1.0f / 60.0f;
+	Plane plane{};
+	plane.normal = { -1.0f,2.2f,0.0f };
 
 	bool start = false;
-
-	ConicalPendulum conicalPendulum;
-	conicalPendulum.anchor = { 0.0f,1.0f,0.0f };
-	conicalPendulum.lenght = 0.8f;
-	conicalPendulum.halfApexAngle = 0.7f;
-	conicalPendulum.angle = 0.0f;
-	conicalPendulum.angularVelocity = 0.0f;
 
 	Vector3 ball{};
 
@@ -67,22 +61,15 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		Matrix4x4 ViewProjectionMatrix = Multiply(viewWorldMatrix, Multiply(viewCameraMatrix, projectionMatrix));
 		Matrix4x4 ViewportMatrix = MakeViewportMatrix(0.0f, 0.0f, float(kWindowWidth), float(kWindowHeight), 0.0f, 1.0f);
 
-		sphere.center = { ball };
-		conicalPendulum.angularVelocity = std::sqrt(9.8f / (conicalPendulum.lenght * std::cos(conicalPendulum.halfApexAngle)));
 
 
 		if (start) {
-			conicalPendulum.angle += conicalPendulum.angularVelocity * deltaTime;
-			float radius = std::sin(conicalPendulum.halfApexAngle) * conicalPendulum.lenght;
-			float height = std::cos(conicalPendulum.halfApexAngle) * conicalPendulum.lenght;
 
-			ball.x = conicalPendulum.anchor.x + std::cos(conicalPendulum.angle) * radius;
-			ball.y = conicalPendulum.anchor.y - height;
-			ball.z = conicalPendulum.anchor.z - std::sin(conicalPendulum.angle) * radius;
 		}
 
 		ImGui::Begin("Window");	
 		ImGui::Checkbox("Start", &start);
+		ImGui::DragFloat3("Plane",&plane.normal.x,0.01f);
 		ImGui::End();
 
 		///
@@ -91,9 +78,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 		DrawGrid(ViewProjectionMatrix, ViewportMatrix);
 
-		DrawSphere(sphere,ViewProjectionMatrix, ViewportMatrix, WHITE);
+		DrawPlane(plane, ViewProjectionMatrix, ViewportMatrix,WHITE);
 
-		DrawLien(conicalPendulum.anchor, ball, ViewProjectionMatrix, ViewportMatrix, WHITE);
+		DrawSphere(sphere,ViewProjectionMatrix, ViewportMatrix, WHITE);
 
 		///
 		/// ↓描画処理ここから
