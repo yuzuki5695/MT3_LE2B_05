@@ -44,6 +44,14 @@ struct Ball {
 	unsigned int color;    // ボールの色
 };
 
+struct Pendulum {
+	Vector3 anchor; // アンカーポイント。固定された端の位置
+	float lenght; // 紐の長さ
+	float angle; // 現在の角度
+	float angularVelocity; // 角速度ω
+	float angularAcceleration;   // 角加速度
+};
+
 Vector3 Project(const Vector3& v1, const Vector3& v2) {
 	return (Dot(v1, v2) / powf(Length(v2), 2), v2);
 };
@@ -92,7 +100,7 @@ void DrawGrid(const Matrix4x4& viewProiectionMatrix, const Matrix4x4& ViewportMa
 
  void DrawSphere(const Sphere& sphere, const Matrix4x4& viewProjectionMatrix, const Matrix4x4& viewportMatrix, uint32_t color)
 {
-	const uint32_t kSubdivision = 8;							//分割数
+	const uint32_t kSubdivision = 12;							//分割数
 	const float kLatStep = (float)M_PI / kSubdivision;			//緯度のステップ
 	const float kLonStep = 2.0f * (float)M_PI / kSubdivision;	//経度のステップ
 

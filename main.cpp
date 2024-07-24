@@ -24,24 +24,20 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	Vector3 cameraRotate = { 0.26f,0.0f,0.0f };
 	
 	Sphere sphere{};
-
-	Spring spring{};
-	spring.anchor = { 0.0f,0.0f,0.0f };
-	spring.naturalLength = 1.0f;
-	spring.stiffness = 100.0f;
-	spring.dampingCoefficient = 2.0f;
-
-	Ball ball{};
-	ball.position = { 1.2f,0.0f,0.0f };
-	ball.mass = 2.0f;
-	ball.radius = 0.08f;
-	ball.color = BLUE;
+	sphere.radius = 0.08f;
 
 	float deltaTime = 1.0f / 60.0f;
 
 	bool start = false;
-	float angularVelocity = 3.14f;
-	float angle = 0.0f;
+
+	Pendulum pendulum;
+	pendulum.anchor = { 0.0f,1.0f,0.0f };
+	pendulum.lenght = 0.8f;
+	pendulum.angle = 0.7f;
+	pendulum.angularVelocity = 0.0f;
+	pendulum.angularAcceleration = 0.0f;
+
+	Vector3 p{};
 
 	// キー入力結果を受け取る箱
 	char keys[256] = { 0 };
@@ -71,40 +67,17 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		Matrix4x4 ViewProjectionMatrix = Multiply(viewWorldMatrix, Multiply(viewCameraMatrix, projectionMatrix));
 		Matrix4x4 ViewportMatrix = MakeViewportMatrix(0.0f, 0.0f, float(kWindowWidth), float(kWindowHeight), 0.0f, 1.0f);
 
-		sphere.center = { ball.position };
-		sphere.radius = ball.radius;
+		sphere.center = { p };
+		pendulum.angularAcceleration = (-9.8f / pendulum.lenght) * std::sin(pendulum.angle);
 
 		if (start) {
-			angle += angularVelocity * deltaTime;
-
-			// 円運動の位置を計算
-			ball.position.x = sphere.center.x + std::cos(angle) * ball.radius;
-			ball.position.y = sphere.center.y + std::sin(angle) * ball.radius;
-			ball.position.z = sphere.center.z;
-
-			// 速度の計算
-			ball.velocity.x = ball.radius * std::sin(angle) * ball.radius;
-			ball.velocity.y = ball.radius *  std::cos(angle) * ball.radius;
-			ball.velocity.z = 0.0f;
-
-			// 加速度の計算
-			ball.acceleration.x = angularVelocity * angularVelocity * ball.position.x;
-			ball.acceleration.y = angularVelocity * angularVelocity * ball.position.y;
-			ball.acceleration.z = 0.0f;
+			pendulum.angularVelocity += pendulum.angularAcceleration * deltaTime;
+			pendulum.angle += pendulum.angularVelocity * deltaTime;
+	
+			p.x = pendulum.anchor.x + std::sin(pendulum.angle) * pendulum.lenght;
+			p.y = pendulum.anchor.y - std::cos(pendulum.angle) * pendulum.lenght;
+			p.z = pendulum.anchor.z;
 		}
-
-		if (!start){
-			spring.anchor = { 0.0f,0.0f,0.0f };
-			spring.naturalLength = 1.0f;
-			spring.stiffness = 100.0f;
-			spring.dampingCoefficient = 2.0f;
-
-			ball.position = { 1.2f,0.0f,0.0f };
-			ball.mass = 2.0f;
-			ball.radius = 0.05f;
-			ball.color = WHITE;
-		}
-
 
 		ImGui::Begin("Window");	
 		ImGui::Checkbox("Start", &start);
@@ -116,7 +89,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 		DrawGrid(ViewProjectionMatrix, ViewportMatrix);
 
-		DrawSphere(sphere,ViewProjectionMatrix, ViewportMatrix, ball.color);
+		DrawSphere(sphere,ViewProjectionMatrix, ViewportMatrix, WHITE);
+
+		DrawLien(pendulum.anchor, p, ViewProjectionMatrix, ViewportMatrix, WHITE);
 
 		///
 		/// ↓描画処理ここから
