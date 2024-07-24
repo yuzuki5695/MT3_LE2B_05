@@ -30,14 +30,14 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 	bool start = false;
 
-	Pendulum pendulum;
-	pendulum.anchor = { 0.0f,1.0f,0.0f };
-	pendulum.lenght = 0.8f;
-	pendulum.angle = 0.7f;
-	pendulum.angularVelocity = 0.0f;
-	pendulum.angularAcceleration = 0.0f;
+	ConicalPendulum conicalPendulum;
+	conicalPendulum.anchor = { 0.0f,1.0f,0.0f };
+	conicalPendulum.lenght = 0.8f;
+	conicalPendulum.halfApexAngle = 0.7f;
+	conicalPendulum.angle = 0.0f;
+	conicalPendulum.angularVelocity = 0.0f;
 
-	Vector3 p{};
+	Vector3 ball{};
 
 	// キー入力結果を受け取る箱
 	char keys[256] = { 0 };
@@ -67,16 +67,18 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		Matrix4x4 ViewProjectionMatrix = Multiply(viewWorldMatrix, Multiply(viewCameraMatrix, projectionMatrix));
 		Matrix4x4 ViewportMatrix = MakeViewportMatrix(0.0f, 0.0f, float(kWindowWidth), float(kWindowHeight), 0.0f, 1.0f);
 
-		sphere.center = { p };
-		pendulum.angularAcceleration = (-9.8f / pendulum.lenght) * std::sin(pendulum.angle);
+		sphere.center = { ball };
+		conicalPendulum.angularVelocity = std::sqrt(9.8f / (conicalPendulum.lenght * std::cos(conicalPendulum.halfApexAngle)));
+
 
 		if (start) {
-			pendulum.angularVelocity += pendulum.angularAcceleration * deltaTime;
-			pendulum.angle += pendulum.angularVelocity * deltaTime;
-	
-			p.x = pendulum.anchor.x + std::sin(pendulum.angle) * pendulum.lenght;
-			p.y = pendulum.anchor.y - std::cos(pendulum.angle) * pendulum.lenght;
-			p.z = pendulum.anchor.z;
+			conicalPendulum.angle += conicalPendulum.angularVelocity * deltaTime;
+			float radius = std::sin(conicalPendulum.halfApexAngle) * conicalPendulum.lenght;
+			float height = std::cos(conicalPendulum.halfApexAngle) * conicalPendulum.lenght;
+
+			ball.x = conicalPendulum.anchor.x + std::cos(conicalPendulum.angle) * radius;
+			ball.y = conicalPendulum.anchor.y - height;
+			ball.z = conicalPendulum.anchor.z - std::sin(conicalPendulum.angle) * radius;
 		}
 
 		ImGui::Begin("Window");	
@@ -91,7 +93,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 		DrawSphere(sphere,ViewProjectionMatrix, ViewportMatrix, WHITE);
 
-		DrawLien(pendulum.anchor, p, ViewProjectionMatrix, ViewportMatrix, WHITE);
+		DrawLien(conicalPendulum.anchor, ball, ViewProjectionMatrix, ViewportMatrix, WHITE);
 
 		///
 		/// ↓描画処理ここから

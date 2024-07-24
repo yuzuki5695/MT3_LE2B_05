@@ -45,12 +45,21 @@ struct Ball {
 };
 
 struct Pendulum {
-	Vector3 anchor; // アンカーポイント。固定された端の位置
-	float lenght; // 紐の長さ
-	float angle; // 現在の角度
-	float angularVelocity; // 角速度ω
-	float angularAcceleration;   // 角加速度
+	Vector3 anchor;            // アンカーポイント。固定された端の位置
+	float lenght;              // 紐の長さ
+	float angle;               // 現在の角度
+	float angularVelocity;     // 角速度ω
+	float angularAcceleration; // 角加速度
 };
+
+struct ConicalPendulum {
+	Vector3 anchor;        // アンカーポイント。固定された端の位置
+	float lenght;          // 紐の長さ
+	float halfApexAngle;   // 円錐の頂角の半分
+	float angle;           // 現在の角度
+	float angularVelocity; // 角速度ω
+};
+
 
 Vector3 Project(const Vector3& v1, const Vector3& v2) {
 	return (Dot(v1, v2) / powf(Length(v2), 2), v2);
