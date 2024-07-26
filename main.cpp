@@ -23,6 +23,22 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	Vector3 camaraTranslate = { 0.0f,1.9f,-6.49f };
 	Vector3 cameraRotate = { 0.26f,0.0f,0.0f };
 	
+	Vector3 translates[3] = {
+		{0.2f,1.0f,0.0f},
+		{0.4f,0.0f,0.0f},
+		{0.3f,0.0f,0.0f}
+	};
+	Vector3 rotates[3] = {
+		{0.0f,0.0f,-6.8f},
+		{0.0f,0.0f,-1.4f},
+		{0.0f,0.0f,0.0f}
+	};
+	Vector3 scales[3] = {
+		{1.0f,1.0f,1.0f},
+		{1.0f,1.0f,1.0f},
+		{1.0f,1.0f,1.0f}
+	};
+
 
 
 	// キー入力結果を受け取る箱
