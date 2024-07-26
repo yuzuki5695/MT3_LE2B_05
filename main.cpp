@@ -35,7 +35,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	ball.acceleration = { 0.0f,-9.8f,0.0f };
 
 	float deltaTime = 1.0f / 60.0f;
-	float e = 0.6f;
+	float e = 0.02f;
 	bool start = false;
 
 	// キー入力結果を受け取る箱
@@ -93,7 +93,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 		ImGui::Begin("Window");	
 		ImGui::Checkbox("Start", &start);
-		ImGui::DragFloat3("Ball position", &ball.position.x, 0.01f);
 		ImGui::End();
 
 		///
