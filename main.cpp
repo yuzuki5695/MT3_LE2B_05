@@ -21,10 +21,9 @@ struct Matrix4x4 {
 	float m[4][4];
 };
 
-
-struct Sphere {
-	Vector3 center; //!< 中心点
-	float radius; //!< 半径
+struct Segment {
+	Vector3 origin; //!< 始点 
+	Vector3 diff;   //!< 終点への差分ベクトル
 };
 
 //加算
@@ -46,14 +45,6 @@ float Dot(const Vector3& v1, const Vector3& v2) {
 float Length(const Vector3& v) {	
 	return sqrtf(powf(v.x, 2) + powf(v.y, 2) + powf(v.z, 2));
 };
-
-// 球と球の当たり判定
-bool  IsCollision(const Sphere& sphere1, const Sphere& sphere2) {
-	float distance = Length(Add(sphere2.center, Vector3{ -sphere1.center.x, -sphere1.center.y, -sphere1.center.z }));
-	// 半径の合計よりも短ければ衝突
-	return distance <= (sphere1.radius + sphere2.radius);
-}
-
 
 //正規化
 Vector3  Normalize(const Vector3& v) {
@@ -273,63 +264,6 @@ void DrawGrid(const Matrix4x4& viewProiectionMatrix, const Matrix4x4& ViewportMa
 
 }
 
-static void DrawSphere(const Sphere& sphere, const Matrix4x4& viewProjectionMatrix, const Matrix4x4& viewportMatrix, uint32_t color)
-{
-	const uint32_t kSubdivision = 20;							//分割数
-	const float kLatStep = (float)M_PI / kSubdivision;			//緯度のステップ
-	const float kLonStep = 2.0f * (float)M_PI / kSubdivision;	//経度のステップ
-
-	// 緯度のループ
-	for (uint32_t latIndex = 0; latIndex < kSubdivision; ++latIndex)
-	{
-		float lat = -0.5f * (float)M_PI + latIndex * kLatStep;	//現在の緯度
-
-		//次の緯度
-		float nextLat = lat + kLatStep;
-
-		//経度のループ
-		for (uint32_t lonIndex = 0; lonIndex < kSubdivision; ++lonIndex)
-		{
-			//現在の経度
-			float lon = lonIndex * kLonStep;
-
-			//次の経度
-			float nextLon = lon + kLonStep;
-
-			// 球面座標の計算
-			Vector3 pointA
-			{
-				sphere.center.x + sphere.radius * cos(lat) * cos(lon),
-				sphere.center.y + sphere.radius * sin(lat),
-				sphere.center.z + sphere.radius * cos(lat) * sin(lon)
-			};
-
-			Vector3 pointB
-			{
-				sphere.center.x + sphere.radius * cos(nextLat) * cos(lon),
-				sphere.center.y + sphere.radius * sin(nextLat),
-				sphere.center.z + sphere.radius * cos(nextLat) * sin(lon)
-			};
-
-			Vector3 pointC
-			{
-				sphere.center.x + sphere.radius * cos(lat) * cos(nextLon),
-				sphere.center.y + sphere.radius * sin(lat),
-				sphere.center.z + sphere.radius * cos(lat) * sin(nextLon)
-			};
-
-			// スクリーン座標に変換
-			pointA = Transform(pointA, Multiply(viewProjectionMatrix, viewportMatrix));
-			pointB = Transform(pointB, Multiply(viewProjectionMatrix, viewportMatrix));
-			pointC = Transform(pointC, Multiply(viewProjectionMatrix, viewportMatrix));
-
-			// 線分の描画
-			Novice::DrawLine((int)pointA.x, (int)pointA.y, (int)pointB.x, (int)pointB.y, color);
-			Novice::DrawLine((int)pointA.x, (int)pointA.y, (int)pointC.x, (int)pointC.y, color);
-		}
-	}
-}
-
 Vector3 Project(const Vector3& v1, const Vector3& v2) {
 	return (Dot(v1, v2) / powf(Length(v2), 2), v2);
 };
@@ -341,20 +275,14 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	// ライブラリの初期化
 	Novice::Initialize(kWindowTitle, 1280, 720);
 
-	Vector3 point{ -1.5f,0.6f,0.6f };
-
-	Sphere sphere1{};
-	Sphere sphere2{};
-	sphere1.radius = 0.5f;
-	sphere2.radius = 0.3f;
-	sphere2.center.x = 1.0f;
-	Vector3 rotate = {};
-	Vector3 translate = {};
-
 	Vector3 camaraTranslate = { 0.0f,1.9f,-6.49f };
 	Vector3 cameraRotate = { 0.26f,0.0f,0.0f };
+
+	Segment segment{ {-2.0f,-1.0f,0.0f},{3.0f,2.0f,2.0f} };
+	Vector3 point{ -1.5f,0.6f,0.6f };
 	
-	bool fige = false;
+	Vector3 project = Project();
+	Vector3 closestpoint = Close
 
 	// キー入力結果を受け取る箱
 	char keys[256] = { 0 };
@@ -382,21 +310,17 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		Matrix4x4 projectionMatrix = MakePerspectiveFovMatrix(0.45f, float(kWindowWidth) / float(kWindowHeight), 0.1f, 100.0f);
 		Matrix4x4 ViewProjectionMatrix = Multiply(viewWorldMatrix, Multiply(viewCameraMatrix, projectionMatrix));
 		Matrix4x4 ViewportMatrix = MakeViewportMatrix(0.0f, 0.0f, float(kWindowWidth), float(kWindowHeight), 0.0f, 1.0f);
+		
+		
+		Vector3 start = Transform(Transform(segment.origin, ViewProjectionMatrix), ViewportMatrix);
+		Vector3 end = Transform(Transform(Add(segment.origin, segment.diff), ViewProjectionMatrix), ViewportMatrix);
 
-		// 球と球の当たり判定
-		if(IsCollision(sphere1, sphere2)){
-			// 球同士が当たったら
-			fige = true;
-		} else {
-			// 球同士が当たらなかったら
-			fige = false;
-		}
 
 		ImGui::Begin("Window");
-		ImGui::DragFloat3("sphere[1]", &sphere1.center.x, 0.01f);
-		ImGui::DragFloat("sphere[1]", &sphere1.radius, 0.01f);
-		ImGui::DragFloat3("sphere[2]", &sphere2.center.x, 0.01f);		
-		ImGui::DragFloat("sphere[2]", &sphere2.radius, 0.01f);
+		ImGui::DragFloat3("sphere[1]", &segment.origin.x, 0.01f);
+		ImGui::DragFloat3("sphere[1]", &segment.diff.x, 0.01f);
+		ImGui::End();
+
 
 		///
 		/// ↑更新処理ここまで
@@ -408,16 +332,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 		DrawGrid(ViewProjectionMatrix, ViewportMatrix);
 
-
-		if (fige == true) {
-			DrawSphere(sphere1, ViewProjectionMatrix, ViewportMatrix, RED);
-			DrawSphere(sphere2, ViewProjectionMatrix, ViewportMatrix, RED);
-		} else if (fige == false) {
-			DrawSphere(sphere1, ViewProjectionMatrix, ViewportMatrix, GREEN);
-			DrawSphere(sphere2, ViewProjectionMatrix, ViewportMatrix, GREEN);
-		}
-
-		ImGui::End();
+		Novice::DrawLine((int)start.x, (int)start.y, (int)end.x, (int)end.y, WHITE);
 
 		///
 		/// ↑描画処理ここまで
