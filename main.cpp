@@ -64,7 +64,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		
 		Vector3 start = Transform(Transform(segment.origin, ViewProjectionMatrix), ViewportMatrix);
 		Vector3 end = Transform(Transform(Add(segment.origin, segment.diff), ViewProjectionMatrix), ViewportMatrix);
-		
+
 		
 		// 線と面の衝突判定
 		if (IsCollision(triangle, segment)) {
@@ -81,6 +81,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		ImGui::DragFloat3("Triangle.v2", &triangle.vertices[2].x, 0.01f);
 		ImGui::DragFloat3("segment.segment", &segment.origin.x, 0.01f);
 		ImGui::DragFloat3("segment.diff", &segment.diff.x, 0.01f);
+		ImGui::DragFloat3("segment.", &camaraTranslate.x, 0.01f);
+		ImGui::DragFloat3(".diff", &cameraRotate.x, 0.01f);
+
 
 		///
 		/// ↑更新処理ここまで
@@ -95,11 +98,11 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		DrawTriangle(triangle,ViewProjectionMatrix, ViewportMatrix,WHITE);
 
 		if (fige == true) {
-			Novice::DrawLine((int)start.x, (int)start.y, (int)end.x, (int)end.y, RED);
-
+			//Novice::DrawLine((int)start.x, (int)start.y, (int)end.x, (int)end.y, RED);
+			DrawSegment(segment, ViewProjectionMatrix, ViewportMatrix,RED);
 		} else if (fige == false) {
-			Novice::DrawLine((int)start.x, (int)start.y, (int)end.x, (int)end.y, WHITE);
-
+			//Novice::DrawLine((int)start.x, (int)start.y, (int)end.x, (int)end.y, WHITE);
+			DrawSegment(segment, ViewProjectionMatrix, ViewportMatrix, WHITE);
 		}
 
 		ImGui::End();

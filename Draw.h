@@ -131,17 +131,14 @@ bool  IsCollision(const Triangle& triangle, const Segment& segment) {
 	};
 
 	Vector3 normal = Cross(v0v1, v0v2);
-	// 三角形の平面の方程式 Ax + By + Cz + D = 0
 	float d = -Dot(normal, triangle.vertices[0]);
 
-	// 線分の始点と終点の平面からの距離
 	float startDistance = Dot(normal, segment.origin) + d;
 	float endDistance = Dot(normal,
 		{segment.origin.x + segment.diff.x,
 		 segment.origin.y + segment.diff.y, 
-		 segment.origin.z + segment.diff.z })+ d;
+		 segment.origin.z + segment.diff.z }) + d;
 
-	// 平面と線分の交点を計算
 	float t = startDistance / (startDistance - endDistance);
 	Vector3 intersection = {
 		segment.origin.x + segment.diff.x * t,
@@ -149,7 +146,6 @@ bool  IsCollision(const Triangle& triangle, const Segment& segment) {
 		segment.origin.z + segment.diff.z * t
 	};
 
-	// 交点が三角形の内部にあるかどうかを確認
 	Vector3 v0p = 
 	{
 		intersection.x - triangle.vertices[0].x,
@@ -186,4 +182,14 @@ bool  IsCollision(const Triangle& triangle, const Segment& segment) {
 	}
 
 	return false;
+}
+
+
+void DrawSegment(const Segment& segment, const Matrix4x4& viewProjectionMatrix, const Matrix4x4& viewportMatrix, uint32_t color) {
+	Vector3 start = Transform(segment.origin, viewProjectionMatrix);
+	Vector3 end = Transform({ segment.origin.x + segment.diff.x,segment.origin.y + segment.diff.y,segment.origin.z + segment.diff.z }, viewProjectionMatrix);
+	Vector2 projectedStart = ProjectTo2D(start, viewportMatrix);
+	Vector2 projectedEnd = ProjectTo2D(end, viewportMatrix);
+
+	Novice::DrawLine(int(projectedStart.x), int(projectedStart.y), int(projectedEnd.x), int(projectedEnd.y), color);
 }
