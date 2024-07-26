@@ -28,7 +28,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	plane.distance = 0.0f;
 
 	Ball ball{};
-	ball.position = {0.3f, 1.2f, 0.3f};
+	ball.position = {1.0f, 1.2f, 0.3f};
 	ball.mass = 2.0f;
 	ball.radius = 0.05f;
 	ball.color = WHITE;
@@ -77,6 +77,14 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			ball.position.z += ball.velocity.z * deltaTime;
 
 			if (IsCollision(Sphere{ ball.position,ball.radius }, plane)) {
+				Vector3 normalizedNormal = Normalize(plane.normal);
+				float penetrationDepth = (ball.radius - Dot(normalizedNormal, ball.position) + plane.distance);
+				
+				// 球を平面から押す
+				ball.position.x += normalizedNormal.x * penetrationDepth;
+				ball.position.y += normalizedNormal.y * penetrationDepth;
+				ball.position.z += normalizedNormal.z * penetrationDepth;	
+				
 				Vector3 reflected = Reflect(ball.velocity, plane.normal);
 				Vector3 projectToNormal = Project(reflected, plane.normal);
 				Vector3 movingDirection = {
