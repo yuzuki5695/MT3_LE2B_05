@@ -22,16 +22,21 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 	Vector3 camaraTranslate = { 0.0f,1.9f,-6.49f };
 	Vector3 cameraRotate = { 0.26f,0.0f,0.0f };
-	
-	Sphere sphere{};
-	sphere.radius = 0.08f;
 
 	Plane plane{};
-	plane.normal = { -1.0f,2.2f,0.0f };
+	plane.normal = Normalize({ -0.2f,0.9f,-0.3f });
+	plane.distance = 0.0f;
 
+	Ball ball{};
+	ball.position = {0.3f, 1.2f, 0.3f};
+	ball.mass = 2.0f;
+	ball.radius = 0.05f;
+	ball.color = WHITE;
+	ball.acceleration = { 0.0f,-9.8f,0.0f };
+
+	float deltaTime = 1.0f / 60.0f;
+	float e = 0.6f;
 	bool start = false;
-
-	Vector3 ball{};
 
 	// キー入力結果を受け取る箱
 	char keys[256] = { 0 };
@@ -61,15 +66,34 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		Matrix4x4 ViewProjectionMatrix = Multiply(viewWorldMatrix, Multiply(viewCameraMatrix, projectionMatrix));
 		Matrix4x4 ViewportMatrix = MakeViewportMatrix(0.0f, 0.0f, float(kWindowWidth), float(kWindowHeight), 0.0f, 1.0f);
 
-
-
+	
 		if (start) {
+			ball.velocity.x += ball.acceleration.x * deltaTime;
+			ball.velocity.y += ball.acceleration.y * deltaTime;
+			ball.velocity.z += ball.acceleration.z * deltaTime;
 
-		}
+			ball.position.x += ball.velocity.x * deltaTime;
+			ball.position.y += ball.velocity.y * deltaTime;
+			ball.position.z += ball.velocity.z * deltaTime;
+
+			if (IsCollision(Sphere{ ball.position,ball.radius }, plane)) {
+				Vector3 reflected = Reflect(ball.velocity, plane.normal);
+				Vector3 projectToNormal = Project(reflected, plane.normal);
+				Vector3 movingDirection = {
+				reflected.x - projectToNormal.x,
+				reflected.y - projectToNormal.y,
+				reflected.z - projectToNormal.z,
+				};
+
+				ball.velocity.x = projectToNormal.x * e + movingDirection.x;
+				ball.velocity.y = projectToNormal.y * e + movingDirection.y;
+				ball.velocity.z = projectToNormal.z * e + movingDirection.z;
+			}
+		} 
 
 		ImGui::Begin("Window");	
 		ImGui::Checkbox("Start", &start);
-		ImGui::DragFloat3("Plane",&plane.normal.x,0.01f);
+		ImGui::DragFloat3("Ball position", &ball.position.x, 0.01f);
 		ImGui::End();
 
 		///
@@ -80,7 +104,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 		DrawPlane(plane, ViewProjectionMatrix, ViewportMatrix,WHITE);
 
-		DrawSphere(sphere,ViewProjectionMatrix, ViewportMatrix, WHITE);
+		DrawSphere(Sphere{ ball.position,ball.radius }, ViewProjectionMatrix, ViewportMatrix, WHITE);
 
 		///
 		/// ↓描画処理ここから

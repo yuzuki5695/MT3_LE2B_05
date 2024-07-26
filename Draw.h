@@ -60,6 +60,11 @@ struct ConicalPendulum {
 	float angularVelocity; // 角速度ω
 };
 
+struct Capsule {
+	Segment segment;
+	float radius;
+};
+
 
 Vector3 Project(const Vector3& v1, const Vector3& v2) {
 	return (Dot(v1, v2) / powf(Length(v2), 2), v2);
@@ -212,4 +217,27 @@ void DrawLien(const Vector3& start, const Vector3& end,const Matrix4x4& viewProj
 		static_cast<int>(projectedPositionend.x),
 		static_cast<int>(projectedPositionend.y),
 		color);
+}
+
+Vector3 Reflect(const Vector3& input, const Vector3& normal) {
+
+	float dotProduct = Dot(input,normal);
+
+	// 反射ベクトルを計算
+	Vector3 reflection = {
+		input.x - normal.x * (2 * dotProduct),
+		input.y - normal.y * (2 * dotProduct),
+		input.z - normal.z * (2 * dotProduct)
+	};
+
+	return reflection;
+}
+
+// 球と平面の当たり判定
+bool  IsCollision(const Sphere& sphere, const Plane& plane) {
+	Vector3 normalizedNormal = Normalize(plane.normal);
+	// 球の中心と平面の距離を計算
+	float distance = Dot(normalizedNormal, sphere.center) - plane.distance;
+	// 距離の絶対値が球の半径以下であれば衝突
+	return std::abs(distance) <= sphere.radius;
 }
