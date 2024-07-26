@@ -21,6 +21,11 @@ struct Matrix4x4 {
 	float m[4][4];
 };
 
+struct Sphere {
+	Vector3 center; //!< 中心点
+	float radius; //!< 半径
+};
+
 struct Segment {
 	Vector3 origin; //!< 始点 
 	Vector3 diff;   //!< 終点への差分ベクトル
@@ -264,8 +269,109 @@ void DrawGrid(const Matrix4x4& viewProiectionMatrix, const Matrix4x4& ViewportMa
 
 }
 
+
+static void DrawSphere(const Sphere& sphere, const Matrix4x4& viewProjectionMatrix, const Matrix4x4& viewportMatrix, uint32_t color)
+{
+	const uint32_t kSubdivision = 20;							//分割数
+	const float kLatStep = (float)M_PI / kSubdivision;			//緯度のステップ
+	const float kLonStep = 2.0f * (float)M_PI / kSubdivision;	//経度のステップ
+
+	// 緯度のループ
+	for (uint32_t latIndex = 0; latIndex < kSubdivision; ++latIndex)
+	{
+		float lat = -0.5f * (float)M_PI + latIndex * kLatStep;	//現在の緯度
+
+		//次の緯度
+		float nextLat = lat + kLatStep;
+
+		//経度のループ
+		for (uint32_t lonIndex = 0; lonIndex < kSubdivision; ++lonIndex)
+		{
+			//現在の経度
+			float lon = lonIndex * kLonStep;
+
+			//次の経度
+			float nextLon = lon + kLonStep;
+
+			// 球面座標の計算
+			Vector3 pointA
+			{
+				sphere.center.x + sphere.radius * cos(lat) * cos(lon),
+				sphere.center.y + sphere.radius * sin(lat),
+				sphere.center.z + sphere.radius * cos(lat) * sin(lon)
+			};
+
+			Vector3 pointB
+			{
+				sphere.center.x + sphere.radius * cos(nextLat) * cos(lon),
+				sphere.center.y + sphere.radius * sin(nextLat),
+				sphere.center.z + sphere.radius * cos(nextLat) * sin(lon)
+			};
+
+			Vector3 pointC
+			{
+				sphere.center.x + sphere.radius * cos(lat) * cos(nextLon),
+				sphere.center.y + sphere.radius * sin(lat),
+				sphere.center.z + sphere.radius * cos(lat) * sin(nextLon)
+			};
+
+			// スクリーン座標に変換
+			pointA = Transform(pointA, Multiply(viewProjectionMatrix, viewportMatrix));
+			pointB = Transform(pointB, Multiply(viewProjectionMatrix, viewportMatrix));
+			pointC = Transform(pointC, Multiply(viewProjectionMatrix, viewportMatrix));
+
+			// 線分の描画
+			Novice::DrawLine((int)pointA.x, (int)pointA.y, (int)pointB.x, (int)pointB.y, color);
+			Novice::DrawLine((int)pointA.x, (int)pointA.y, (int)pointC.x, (int)pointC.y, color);
+		}
+	}
+}
+
+// ベクトルの引き算
+Vector3 Subtract(const Vector3& a, const Vector3& b) {
+	return { a.x - b.x, a.y - b.y };
+}
+
 Vector3 Project(const Vector3& v1, const Vector3& v2) {
-	return (Dot(v1, v2) / powf(Length(v2), 2), v2);
+	float dotProduct = Dot(v1,v2);
+	float v2LengthSquared = Dot(v2,v2);
+	float scalar = dotProduct / v2LengthSquared;
+	return { v2.x * scalar,v2.y * scalar,v2.z * scalar };
+};
+
+Vector3 ClosestPoint(const Vector3& point, const Segment& segment) {
+	Vector3 segmentDir = {
+	segment.diff.x - segment.origin.x,
+	segment.diff.y - segment.origin.y,
+	segment.diff.z - segment.origin.z
+	};
+
+	Vector3 pointToStart = { 
+		point.x- segment.origin.x,
+		point.y - segment.origin.y,
+		point.z - segment.origin.z
+	};
+
+	float segmentLengthSquared = Length(segmentDir) * Length(segmentDir);
+
+	if (segmentLengthSquared == 0) {
+		return segment.origin;
+	}
+
+	Vector3 segmentDirNormalized = Normalize(segmentDir);
+	float t = Dot(pointToStart,segmentDirNormalized) / segmentLengthSquared;
+	Vector3 closestPoint;
+	if (t < 0) {
+		closestPoint = segment.origin;
+	} else if (t > 1) {
+		closestPoint = segment.diff;
+	} else {
+		closestPoint.x = segment.origin.x + segmentDir.x * t;
+		closestPoint.y = segment.origin.y + segmentDir.y * t;
+		closestPoint.z = segment.origin.z + segmentDir.z * t;
+	}
+
+	return closestPoint;
 };
 
 
@@ -281,8 +387,11 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	Segment segment{ {-2.0f,-1.0f,0.0f},{3.0f,2.0f,2.0f} };
 	Vector3 point{ -1.5f,0.6f,0.6f };
 	
-	Vector3 project = Project();
-	Vector3 closestpoint = Close
+	Vector3 project = Project(Subtract(point,segment.origin), segment.diff);
+	Vector3 closestpoint = ClosestPoint(point,segment);
+
+	Sphere pointSphere{ point,0.01f };// 1cmの球を描画
+	Sphere closestpointSphere{ closestpoint,0.10f };
 
 	// キー入力結果を受け取る箱
 	char keys[256] = { 0 };
@@ -317,8 +426,10 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 
 		ImGui::Begin("Window");
-		ImGui::DragFloat3("sphere[1]", &segment.origin.x, 0.01f);
-		ImGui::DragFloat3("sphere[1]", &segment.diff.x, 0.01f);
+		ImGui::DragFloat3("Point", &point.x, 0.01f);
+		ImGui::DragFloat3("Segment.origin", &segment.origin.x, 0.01f);
+		ImGui::DragFloat3("Segment.diff", &segment.diff.x, 0.01f);
+		ImGui::InputFloat3("Project", &project.x, "%.3f",ImGuiInputTextFlags_ReadOnly);
 		ImGui::End();
 
 
@@ -333,6 +444,10 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		DrawGrid(ViewProjectionMatrix, ViewportMatrix);
 
 		Novice::DrawLine((int)start.x, (int)start.y, (int)end.x, (int)end.y, WHITE);
+
+		DrawSphere(pointSphere, ViewProjectionMatrix, ViewportMatrix,RED);
+		DrawSphere(closestpointSphere, ViewProjectionMatrix, ViewportMatrix, BLACK);
+
 
 		///
 		/// ↑描画処理ここまで
