@@ -39,7 +39,11 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		{1.0f,1.0f,1.0f}
 	};
 
-
+	Sphere spheres[3] = {
+	  { {0.0f, 0.0f, 0.0f}, 0.05f },
+	  { {0.0f, 0.0f, 0.0f}, 0.05f },
+	  { {0.0f, 0.0f, 0.0f}, 0.05f }
+	};
 
 	// キー入力結果を受け取る箱
 	char keys[256] = { 0 };
@@ -69,9 +73,20 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		Matrix4x4 ViewProjectionMatrix = Multiply(viewWorldMatrix, Multiply(viewCameraMatrix, projectionMatrix));
 		Matrix4x4 ViewportMatrix = MakeViewportMatrix(0.0f, 0.0f, float(kWindowWidth), float(kWindowHeight), 0.0f, 1.0f);
 
-		ImGui::Begin("Window");
-		
 
+
+
+
+		ImGui::Begin("Window");
+		ImGui::DragFloat3("translates[0]", &translates[0].x,0.01f);
+		ImGui::DragFloat3("rotates[0]", &rotates[0].x, 0.01f);
+		ImGui::DragFloat3("scales[0]", &scales[0].x, 0.01f);
+		ImGui::DragFloat3("translates[1]", &translates[1].x, 0.01f);
+		ImGui::DragFloat3("rotates[1]", &rotates[1].x, 0.01f);
+		ImGui::DragFloat3("scales[1]", &scales[0].x, 0.01f);
+		ImGui::DragFloat3("translates[2]", &translates[2].x, 0.01f);
+		ImGui::DragFloat3("rotates[2]", &rotates[2].x, 0.01f);
+		ImGui::DragFloat3("scales[2]", &scales[0].x, 0.01f);
 		ImGui::End();
 
 		///
@@ -81,6 +96,12 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		///
 		/// ↓描画処理ここから
 		///
+
+		DrawGrid(ViewProjectionMatrix, ViewportMatrix);
+
+		DrawSphere(spheres[0], ViewProjectionMatrix, ViewportMatrix, RED);
+		DrawSphere(spheres[1], ViewProjectionMatrix, ViewportMatrix, GREEN);
+		DrawSphere(spheres[2], ViewProjectionMatrix, ViewportMatrix, BLUE);
 
 		///
 		/// ↑描画処理ここまで

@@ -221,3 +221,18 @@ Vector2 ProjectTo2D(const Vector3& v, const Matrix4x4& viewportMatrix) {
 	float y = v.x * viewportMatrix.m[0][1] + v.y * viewportMatrix.m[1][1] + v.z * viewportMatrix.m[2][1] + viewportMatrix.m[3][1];
 	return { x, y };
 }
+
+// 単位行列の作成
+Matrix4x4 MakeIdentity4x4() {
+	Matrix4x4 result;
+	for (int i = 0; i < 4; ++i) {
+		for (int v = 0; v < 4; ++v) {
+			if (v == i) {
+				result.m[i][v] = 1;
+			} else {
+				result.m[i][v] = 0;
+			}
+		}
+	}
+	return result;
+};
