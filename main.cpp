@@ -98,11 +98,11 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		DrawTriangle(triangle,ViewProjectionMatrix, ViewportMatrix,WHITE);
 
 		if (fige == true) {
-			//Novice::DrawLine((int)start.x, (int)start.y, (int)end.x, (int)end.y, RED);
-			DrawSegment(segment, ViewProjectionMatrix, ViewportMatrix,RED);
+			Novice::DrawLine((int)start.x, (int)start.y, (int)end.x, (int)end.y, RED);
+			//DrawSegment(segment, ViewProjectionMatrix, ViewportMatrix,RED);
 		} else if (fige == false) {
-			//Novice::DrawLine((int)start.x, (int)start.y, (int)end.x, (int)end.y, WHITE);
-			DrawSegment(segment, ViewProjectionMatrix, ViewportMatrix, WHITE);
+			Novice::DrawLine((int)start.x, (int)start.y, (int)end.x, (int)end.y, WHITE);
+			//DrawSegment(segment, ViewProjectionMatrix, ViewportMatrix, WHITE);
 		}
 
 		ImGui::End();

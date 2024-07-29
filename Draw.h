@@ -119,25 +119,14 @@ void DrawTriangle(const Triangle& triangle,const Matrix4x4& viewProjectionMatrix
 bool  IsCollision(const Triangle& triangle, const Segment& segment) {
 
 	// 三角形の法線ベクトルを計算
-	Vector3 v0v1 = {
-		triangle.vertices[1].x - triangle.vertices[0].x,
-		triangle.vertices[1].y - triangle.vertices[0].y,
-		triangle.vertices[1].z - triangle.vertices[0].z
-	};
-	Vector3 v0v2 = {
-		triangle.vertices[2].x - triangle.vertices[0].x,
-		triangle.vertices[2].y - triangle.vertices[0].y,
-		triangle.vertices[2].z - triangle.vertices[0].z
-	};
+	Vector3 v0v1 = Subtract(triangle.vertices[1], triangle.vertices[0]);
+	Vector3 v0v2 = Subtract(triangle.vertices[2], triangle.vertices[0]);
 
 	Vector3 normal = Cross(v0v1, v0v2);
 	float d = -Dot(normal, triangle.vertices[0]);
 
 	float startDistance = Dot(normal, segment.origin) + d;
-	float endDistance = Dot(normal,
-		{segment.origin.x + segment.diff.x,
-		 segment.origin.y + segment.diff.y, 
-		 segment.origin.z + segment.diff.z }) + d;
+	float endDistance = Dot(normal,Add(segment.origin,segment.diff)) + d;
 
 	float t = startDistance / (startDistance - endDistance);
 	Vector3 intersection = {
@@ -146,37 +135,14 @@ bool  IsCollision(const Triangle& triangle, const Segment& segment) {
 		segment.origin.z + segment.diff.z * t
 	};
 
-	Vector3 v0p = 
-	{
-		intersection.x - triangle.vertices[0].x,
-		intersection.y - triangle.vertices[0].y,
-		intersection.z - triangle.vertices[0].z
-	};
-	Vector3 v1p = 
-	{ 
-		intersection.x - triangle.vertices[1].x,
-		intersection.y - triangle.vertices[1].y,
-		intersection.z - triangle.vertices[1].z 
-	};
-	Vector3 v2p = 
-	{
-	    intersection.x - triangle.vertices[2].x,
-		intersection.y - triangle.vertices[2].y,
-		intersection.z - triangle.vertices[2].z
-	};
+	Vector3 v0p = Subtract(intersection,triangle.vertices[0]);	
+	Vector3 v1p = Subtract(intersection, triangle.vertices[1]);
+	Vector3 v2p = Subtract(intersection, triangle.vertices[2]);
 
 	Vector3 cross01 = Cross(v0v1, v0p);
-	Vector3 cross12 = Cross(
-		{
-		triangle.vertices[2].x - triangle.vertices[1].x,
-		triangle.vertices[2].y - triangle.vertices[1].y,
-		triangle.vertices[2].z - triangle.vertices[1].z
-		}, v1p);
-	Vector3 cross20 = Cross({
-		triangle.vertices[0].x - triangle.vertices[2].x,
-		triangle.vertices[0].y - triangle.vertices[2].y,
-		triangle.vertices[0].z - triangle.vertices[2].z
-		}, v2p);
+	Vector3 cross12 = Cross(Subtract(triangle.vertices[2], triangle.vertices[1]), v1p);
+	Vector3 cross20 = Cross(Subtract(triangle.vertices[0], triangle.vertices[2]),v2p);
+
 	if (Dot(cross01, normal) >= 0.0f && Dot(cross12, normal) >= 0.0f && Dot(cross20, normal) >= 0.0f) {
 		return true;
 	}
