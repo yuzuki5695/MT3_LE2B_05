@@ -42,7 +42,13 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	Sphere spheres[3] = {
 	  { {0.0f, 0.0f, 0.0f}, 0.05f },
 	  { {0.0f, 0.0f, 0.0f}, 0.05f },
-	  { {0.0f, 0.0f, 0.0f}, 0.05f }
+	  { {0.0f, 0.0f, 0.0f}, 0.05f }	
+	};
+
+	uint32_t colors[3] = {
+	0xFFFF0000, // 赤色
+	0xFF00FF00, // 緑色
+	0xFF0000FF  // 青色
 	};
 
 	// キー入力結果を受け取る箱
@@ -74,8 +80,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		Matrix4x4 ViewportMatrix = MakeViewportMatrix(0.0f, 0.0f, float(kWindowWidth), float(kWindowHeight), 0.0f, 1.0f);
 
 
-
-
+		spheres[0].center = translates[0];
 
 		ImGui::Begin("Window");
 		ImGui::DragFloat3("translates[0]", &translates[0].x,0.01f);
@@ -99,9 +104,13 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 		DrawGrid(ViewProjectionMatrix, ViewportMatrix);
 
-		DrawSphere(spheres[0], ViewProjectionMatrix, ViewportMatrix, RED);
-		DrawSphere(spheres[1], ViewProjectionMatrix, ViewportMatrix, GREEN);
-		DrawSphere(spheres[2], ViewProjectionMatrix, ViewportMatrix, BLUE);
+		//DrawSphere(spheres[0], ViewProjectionMatrix, ViewportMatrix, RED);
+		/*DrawSphere(spheres[1], ViewProjectionMatrix, ViewportMatrix, GREEN);
+		DrawSphere(spheres[2], ViewProjectionMatrix, ViewportMatrix, BLUE);*/
+
+
+		RenderScene(spheres,translates,rotates,scales, ViewProjectionMatrix,ViewportMatrix, colors);
+
 
 		///
 		/// ↑描画処理ここまで

@@ -236,3 +236,34 @@ Matrix4x4 MakeIdentity4x4() {
 	}
 	return result;
 };
+Matrix4x4 MakeScaleMatrix(const Vector3& scale) {
+	return Matrix4x4{
+		scale.x, 0.0f, 0.0f, 0.0f,
+		0.0f, scale.y, 0.0f, 0.0f,
+		0.0f, 0.0f, scale.z, 0.0f,
+		0.0f, 0.0f, 0.0f, 1.0f
+	};
+}
+Matrix4x4 MakeRotationMatrix(const Vector3& rotation) {
+	float cosX = cos(rotation.x);
+	float sinX = sin(rotation.x);
+	float cosY = cos(rotation.y);
+	float sinY = sin(rotation.y);
+	float cosZ = cos(rotation.z);
+	float sinZ = sin(rotation.z);
+
+	return Matrix4x4{
+		cosY * cosZ, -cosY * sinZ, sinY, 0.0f,
+		cosX * sinZ + cosZ * sinX * sinY, cosX * cosZ - sinX * sinY * sinZ, -cosY * sinX, 0.0f,
+		sinX * sinZ - cosX * cosZ * sinY, cosZ * sinX + cosX * sinY * sinZ, cosX * cosY, 0.0f,
+		0.0f, 0.0f, 0.0f, 1.0f
+	};
+}
+Matrix4x4 MakeTranslationMatrix(const Vector3& translation) {
+	return Matrix4x4{
+		1.0f, 0.0f, 0.0f, translation.x,
+		0.0f, 1.0f, 0.0f, translation.y,
+		0.0f, 0.0f, 1.0f, translation.z,
+		0.0f, 0.0f, 0.0f, 1.0f
+	};
+}
