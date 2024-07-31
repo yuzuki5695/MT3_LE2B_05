@@ -51,10 +51,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		BLUE
 	};
 
-	Segment segment{};
-	segment.diff.x = 1.2f;
-	segment.diff.y = 0.5f;
-
 	// キー入力結果を受け取る箱
 	char keys[256] = { 0 };
 	char preKeys[256] = { 0 };
@@ -95,10 +91,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		Matrix4x4 ViewProjectionMatrix = Multiply(viewWorldMatrix, Multiply(viewCameraMatrix, projectionMatrix));
 		Matrix4x4 ViewportMatrix = MakeViewportMatrix(0.0f, 0.0f, float(kWindowWidth), float(kWindowHeight), 0.0f, 1.0f);
 
-		Vector3 start = Transform(Transform(segment.origin, ViewProjectionMatrix), ViewportMatrix);
-		Vector3 end = Transform(Transform(Add(segment.origin, segment.diff), ViewProjectionMatrix), ViewportMatrix);
-
-
 		// SRTの作成
 		Matrix4x4 worldMatrices[3];
 		for (int i = 0; i < 3; ++i) {
@@ -121,6 +113,12 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			spheres[i].center.z = worldMatrices[i].m[3][2];
 		}
 
+		Vector3 startLine[2]; 
+		startLine[0] = Transform(Transform(spheres[0].center, ViewProjectionMatrix), ViewportMatrix);
+		startLine[1] = Transform(Transform(spheres[1].center, ViewProjectionMatrix), ViewportMatrix);
+		Vector3 endLine[2];
+		endLine[0] = Transform(Transform(spheres[1].center, ViewProjectionMatrix), ViewportMatrix);
+		endLine[1] = Transform(Transform(spheres[2].center, ViewProjectionMatrix), ViewportMatrix);
 
 		///
 		/// ↑更新処理ここまで
@@ -132,13 +130,14 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 		DrawGrid(ViewProjectionMatrix, ViewportMatrix);
 
-		// 各球体を描画
+		// 各球体,線を描画
 		for (int i = 0; i < 3; ++i) {
 			DrawSphere(spheres[i], ViewProjectionMatrix, ViewportMatrix, color[i]);
+			
+			if (i < 2) {
+				Novice::DrawLine((int)startLine[i].x, (int)startLine[i].y, (int)endLine[i].x, (int)endLine[i].y, WHITE);
+			}
 		}
-
-		Novice::DrawLine((int)start.x, (int)start.y, (int)end.x, (int)end.y, WHITE);
-
 
 		///
 		/// ↑描画処理ここまで
