@@ -45,11 +45,15 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	  { {0.0f, 0.0f, 0.0f}, 0.05f }	
 	};
 
-	uint32_t colors[3] = {
-	0xFFFF0000, // 赤色
-	0xFF00FF00, // 緑色
-	0xFF0000FF  // 青色
+	uint32_t color[3]{
+		RED,
+		GREEN,
+		BLUE
 	};
+
+	Segment segment{};
+	segment.diff.x = 1.2f;
+	segment.diff.y = 0.5f;
 
 	// キー入力結果を受け取る箱
 	char keys[256] = { 0 };
@@ -69,6 +73,18 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		///
 		/// 
 
+		ImGui::Begin("Window");
+		ImGui::DragFloat3("translates[0]", &translates[0].x, 0.01f);
+		ImGui::DragFloat3("rotates[0]", &rotates[0].x, 0.01f);
+		ImGui::DragFloat3("scales[0]", &scales[0].x, 0.01f);
+		ImGui::DragFloat3("translates[1]", &translates[1].x, 0.01f);
+		ImGui::DragFloat3("rotates[1]", &rotates[1].x, 0.01f);
+		ImGui::DragFloat3("scales[1]", &scales[0].x, 0.01f);
+		ImGui::DragFloat3("translates[2]", &translates[2].x, 0.01f);
+		ImGui::DragFloat3("rotates[2]", &rotates[2].x, 0.01f);
+		ImGui::DragFloat3("scales[2]", &scales[0].x, 0.01f);
+		ImGui::End();
+
 		Matrix4x4 worldMatrix = MakeAffineMatrix({ 1.0f,1.0f,1.0f }, { 0.0f,0.0f,0.0f }, { 0.0f,0.0f,0.0f });
 		Matrix4x4 viewWorldMatrix = Inverse(worldMatrix);
 
@@ -79,20 +95,32 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		Matrix4x4 ViewProjectionMatrix = Multiply(viewWorldMatrix, Multiply(viewCameraMatrix, projectionMatrix));
 		Matrix4x4 ViewportMatrix = MakeViewportMatrix(0.0f, 0.0f, float(kWindowWidth), float(kWindowHeight), 0.0f, 1.0f);
 
+		Vector3 start = Transform(Transform(segment.origin, ViewProjectionMatrix), ViewportMatrix);
+		Vector3 end = Transform(Transform(Add(segment.origin, segment.diff), ViewProjectionMatrix), ViewportMatrix);
 
-		spheres[0].center = translates[0];
 
-		ImGui::Begin("Window");
-		ImGui::DragFloat3("translates[0]", &translates[0].x,0.01f);
-		ImGui::DragFloat3("rotates[0]", &rotates[0].x, 0.01f);
-		ImGui::DragFloat3("scales[0]", &scales[0].x, 0.01f);
-		ImGui::DragFloat3("translates[1]", &translates[1].x, 0.01f);
-		ImGui::DragFloat3("rotates[1]", &rotates[1].x, 0.01f);
-		ImGui::DragFloat3("scales[1]", &scales[0].x, 0.01f);
-		ImGui::DragFloat3("translates[2]", &translates[2].x, 0.01f);
-		ImGui::DragFloat3("rotates[2]", &rotates[2].x, 0.01f);
-		ImGui::DragFloat3("scales[2]", &scales[0].x, 0.01f);
-		ImGui::End();
+		// SRTの作成
+		Matrix4x4 worldMatrices[3];
+		for (int i = 0; i < 3; ++i) {
+			Matrix4x4 scaleMatrix = MakeScaleMatrix(scales[i]);
+			Matrix4x4 translationMatrix = MakeTranslateMatrix(translates[i]);
+			Matrix4x4 rotateXMatrix = MakeRotateXMatrix(rotates[i].x);
+			Matrix4x4 rotateYMatrix = MakeRotateYMatrix(rotates[i].y);
+			Matrix4x4 rotateZMatrix = MakeRotateZMatrix(rotates[i].z);
+			Matrix4x4 rotateRMatrix = Multiply(rotateXMatrix, Multiply(rotateYMatrix, rotateZMatrix));
+
+			Matrix4x4 localMatrix = Multiply(scaleMatrix, Multiply(rotateRMatrix, translationMatrix));
+			if (i > 0) {
+				worldMatrices[i] = Multiply(localMatrix,worldMatrices[i - 1]);
+			} else {
+				worldMatrices[i] = localMatrix;
+			}
+
+			spheres[i].center.x = worldMatrices[i].m[3][0];
+			spheres[i].center.y = worldMatrices[i].m[3][1];
+			spheres[i].center.z = worldMatrices[i].m[3][2];
+		}
+
 
 		///
 		/// ↑更新処理ここまで
@@ -104,12 +132,12 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 		DrawGrid(ViewProjectionMatrix, ViewportMatrix);
 
-		//DrawSphere(spheres[0], ViewProjectionMatrix, ViewportMatrix, RED);
-		/*DrawSphere(spheres[1], ViewProjectionMatrix, ViewportMatrix, GREEN);
-		DrawSphere(spheres[2], ViewProjectionMatrix, ViewportMatrix, BLUE);*/
+		// 各球体を描画
+		for (int i = 0; i < 3; ++i) {
+			DrawSphere(spheres[i], ViewProjectionMatrix, ViewportMatrix, color[i]);
+		}
 
-
-		RenderScene(spheres,translates,rotates,scales, ViewProjectionMatrix,ViewportMatrix, colors);
+		Novice::DrawLine((int)start.x, (int)start.y, (int)end.x, (int)end.y, WHITE);
 
 
 		///

@@ -236,34 +236,44 @@ Matrix4x4 MakeIdentity4x4() {
 	}
 	return result;
 };
-Matrix4x4 MakeScaleMatrix(const Vector3& scale) {
-	return Matrix4x4{
-		scale.x, 0.0f, 0.0f, 0.0f,
-		0.0f, scale.y, 0.0f, 0.0f,
-		0.0f, 0.0f, scale.z, 0.0f,
-		0.0f, 0.0f, 0.0f, 1.0f
-	};
-}
-Matrix4x4 MakeRotationMatrix(const Vector3& rotation) {
-	float cosX = cos(rotation.x);
-	float sinX = sin(rotation.x);
-	float cosY = cos(rotation.y);
-	float sinY = sin(rotation.y);
-	float cosZ = cos(rotation.z);
-	float sinZ = sin(rotation.z);
 
-	return Matrix4x4{
-		cosY * cosZ, -cosY * sinZ, sinY, 0.0f,
-		cosX * sinZ + cosZ * sinX * sinY, cosX * cosZ - sinX * sinY * sinZ, -cosY * sinX, 0.0f,
-		sinX * sinZ - cosX * cosZ * sinY, cosZ * sinX + cosX * sinY * sinZ, cosX * cosY, 0.0f,
-		0.0f, 0.0f, 0.0f, 1.0f
-	};
+
+Matrix4x4 MakeScaleMatrix(const Vector3& scale) {
+	Matrix4x4 result;
+
+	result.m[0][0] = scale.x; result.m[0][1] = 0.0f; result.m[0][2] = 0.0f; result.m[0][3] = 0.0f;
+	result.m[1][0] = 0.0f; result.m[1][1] = scale.y; result.m[1][2] = 0.0f; result.m[1][3] = 0.0f;
+	result.m[2][0] = 0.0f; result.m[2][1] = 0.0f; result.m[2][2] = scale.z; result.m[2][3] = 0.0f;
+	result.m[3][0] = 0.0f; result.m[3][1] = 0.0f; result.m[3][2] = 0.0f; result.m[3][3] = 1.0f;
+
+	return result;
 }
-Matrix4x4 MakeTranslationMatrix(const Vector3& translation) {
-	return Matrix4x4{
-		1.0f, 0.0f, 0.0f, translation.x,
-		0.0f, 1.0f, 0.0f, translation.y,
-		0.0f, 0.0f, 1.0f, translation.z,
-		0.0f, 0.0f, 0.0f, 1.0f
-	};
-}
+
+
+
+
+Matrix4x4 MakeTranslateMatrix(const Vector3& teanslate) {
+	Matrix4x4 result;
+	result.m[0][0] = 1.0f;
+	result.m[0][1] = 0.0f;
+	result.m[0][2] = 0.0f;
+	result.m[0][3] = 0.0f;
+
+	result.m[1][0] = 0.0f;
+	result.m[1][1] = 1.0f;
+	result.m[1][2] = 0.0f;
+	result.m[1][3] = 0.0f;
+
+	result.m[2][0] = 0.0f;
+	result.m[2][1] = 0.0f;
+	result.m[2][2] = 1.0f;
+	result.m[2][3] = 0.0f;
+
+	result.m[3][0] = teanslate.x;
+	result.m[3][1] = teanslate.y;
+	result.m[3][2] = teanslate.z;
+	result.m[3][3] = 1.0f;
+
+
+	return result;
+};
