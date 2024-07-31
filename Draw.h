@@ -128,6 +128,10 @@ bool  IsCollision(const Triangle& triangle, const Segment& segment) {
 	float startDistance = Dot(normal, segment.origin) + d;
 	float endDistance = Dot(normal,Add(segment.origin,segment.diff)) + d;
 
+	if (startDistance * endDistance > 0) {
+		return false;
+	}
+
 	float t = startDistance / (startDistance - endDistance);
 	Vector3 intersection = {
 		segment.origin.x + segment.diff.x * t,
