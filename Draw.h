@@ -147,7 +147,9 @@ bool  IsCollision(const Triangle& triangle, const Segment& segment) {
 	Vector3 cross12 = Cross(Subtract(triangle.vertices[2], triangle.vertices[1]), v1p);
 	Vector3 cross20 = Cross(Subtract(triangle.vertices[0], triangle.vertices[2]),v2p);
 
-	if (Dot(cross01, normal) >= 0.0f && Dot(cross12, normal) >= 0.0f && Dot(cross20, normal) >= 0.0f) {
+	if (Dot(cross01, normal) >= 0.0f &&
+		Dot(cross12, normal) >= 0.0f &&
+		Dot(cross20, normal) >= 0.0f) {
 		return true;
 	}
 
