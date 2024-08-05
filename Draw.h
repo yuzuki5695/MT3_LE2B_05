@@ -123,29 +123,36 @@ bool  IsCollision(const Triangle& triangle, const Segment& segment) {
 	Vector3 v0v2 = Subtract(triangle.vertices[2], triangle.vertices[0]);
 
 	Vector3 normal = Cross(v0v1, v0v2);
-	float d = -Dot(normal, triangle.vertices[0]);
+	normal = Normalize(normal);
 
-	float startDistance = Dot(normal, segment.origin) + d;
-	float endDistance = Dot(normal,Add(segment.origin,segment.diff)) + d;
+	Vector3 dir = segment.diff;
+	dir = Normalize(dir);
 
-	if (startDistance * endDistance > 0) {
+	Vector3 diff = Subtract(triangle.vertices[0], segment.origin);
+
+	float dotND = Dot(normal, dir);
+	if (fabs(dotND) < 0) {
 		return false;
 	}
 
-	float t = startDistance / (startDistance - endDistance);
+	float t = Dot(normal, diff) / dotND;
+	if (t < 0.0f || t > Length(segment.diff)) {
+		return false; 
+	}
+
 	Vector3 intersection = {
-		segment.origin.x + segment.diff.x * t,
-		segment.origin.y + segment.diff.y * t,
-		segment.origin.z + segment.diff.z * t
+		segment.origin.x + t * dir.x ,
+		segment.origin.y + t * dir.y ,
+		segment.origin.z + t * dir.z 
 	};
 
 	Vector3 v0p = Subtract(intersection,triangle.vertices[0]);	
 	Vector3 v1p = Subtract(intersection, triangle.vertices[1]);
 	Vector3 v2p = Subtract(intersection, triangle.vertices[2]);
 
-	Vector3 cross01 = Cross(v0v1, v0p);
+	Vector3 cross01 = Cross(Subtract(triangle.vertices[1], triangle.vertices[0]), v0p);
 	Vector3 cross12 = Cross(Subtract(triangle.vertices[2], triangle.vertices[1]), v1p);
-	Vector3 cross20 = Cross(Subtract(triangle.vertices[0], triangle.vertices[2]),v2p);
+	Vector3 cross20 = Cross(Subtract(triangle.vertices[0], triangle.vertices[2]), v2p);
 
 	if (Dot(cross01, normal) >= 0.0f &&
 		Dot(cross12, normal) >= 0.0f &&
